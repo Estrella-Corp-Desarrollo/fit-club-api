@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "workouts",
+  "info": {
+    "singularName": "workout",
+    "pluralName": "workouts",
+    "displayName": "Entrenamientos",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "date": {
+      "type": "date"
+    },
+    "note": {
+      "type": "text",
+      "required": true
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::users-permissions.user"
+    },
+    "workout_type": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::workout-type.workout-type"
+    },
+    "group_of_athletes": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::group-of-athlete.group-of-athlete"
+    },
+    "exercises": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::exercise.exercise"
+    }
+  }
+}

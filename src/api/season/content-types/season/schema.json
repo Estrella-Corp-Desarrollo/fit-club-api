@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "seasons",
+  "info": {
+    "singularName": "season",
+    "pluralName": "seasons",
+    "displayName": "Temporadas"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "blocks"
+    },
+    "entrenamientos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::workout.workout"
+    },
+    "start": {
+      "type": "date"
+    },
+    "finish": {
+      "type": "date"
+    },
+    "athletes": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

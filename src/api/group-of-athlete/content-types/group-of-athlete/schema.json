@@ -1,0 +1,31 @@
+{
+  "kind": "collectionType",
+  "collectionName": "group_of_athletes",
+  "info": {
+    "singularName": "group-of-athlete",
+    "pluralName": "group-of-athletes",
+    "displayName": "Grupo de atletas",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "users": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::users-permissions.user"
+    },
+    "club": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::club.club"
+    }
+  }
+}

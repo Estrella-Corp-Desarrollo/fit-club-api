@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "personals_best",
+  "info": {
+    "singularName": "personal-best",
+    "pluralName": "personals-best",
+    "displayName": "Marcas por atleta"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "athlete": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "personal_record"
+    },
+    "distance": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::distance.distance"
+    }
+  }
+}

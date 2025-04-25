@@ -1,0 +1,17 @@
+{
+  "kind": "collectionType",
+  "collectionName": "distances",
+  "info": {
+    "singularName": "distance",
+    "pluralName": "distances",
+    "displayName": "Distancias"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    }
+  }
+}

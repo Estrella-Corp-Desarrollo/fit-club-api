@@ -1,0 +1,32 @@
+{
+  "kind": "collectionType",
+  "collectionName": "eventos",
+  "info": {
+    "singularName": "evento",
+    "pluralName": "eventos",
+    "displayName": "Carrera",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "blocks"
+    },
+    "distancias": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::distance.distance"
+    },
+    "evento": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::event.event",
+      "mappedBy": "carrera"
+    }
+  }
+}

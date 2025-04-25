@@ -1,0 +1,31 @@
+{
+  "kind": "collectionType",
+  "collectionName": "category_exercises",
+  "info": {
+    "singularName": "category-exercise",
+    "pluralName": "category-exercises",
+    "displayName": "Tipos de ejercicios",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text",
+      "required": true
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    }
+  }
+}
