@@ -14,19 +14,21 @@
     "name": {
       "type": "string"
     },
-    "description": {
-      "type": "blocks"
-    },
     "distancias": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::distance.distance"
     },
-    "evento": {
+    "city": {
       "type": "relation",
       "relation": "oneToOne",
-      "target": "api::event.event",
-      "mappedBy": "carrera"
+      "target": "api::city.city"
+    },
+    "editions": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::edition.edition",
+      "mappedBy": "carreras"
     }
   }
 }

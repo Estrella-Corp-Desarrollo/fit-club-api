@@ -1,10 +1,10 @@
 {
   "kind": "collectionType",
-  "collectionName": "events",
+  "collectionName": "cities",
   "info": {
-    "singularName": "event",
-    "pluralName": "events",
-    "displayName": "Eventos"
+    "singularName": "city",
+    "pluralName": "cities",
+    "displayName": "Ciudades"
   },
   "options": {
     "draftAndPublish": true
@@ -12,9 +12,6 @@
   "attributes": {
     "name": {
       "type": "string"
-    },
-    "edition": {
-      "type": "date"
     }
   }
 }

@@ -1,0 +1,30 @@
+{
+  "kind": "collectionType",
+  "collectionName": "participaciones",
+  "info": {
+    "singularName": "participacion",
+    "pluralName": "participaciones",
+    "displayName": "Participación"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "time": {
+      "type": "string"
+    },
+    "position": {
+      "type": "integer"
+    },
+    "athletes": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::users-permissions.user"
+    },
+    "editions": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::edition.edition"
+    }
+  }
+}

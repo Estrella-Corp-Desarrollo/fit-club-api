@@ -1,0 +1,23 @@
+{
+  "kind": "collectionType",
+  "collectionName": "editions",
+  "info": {
+    "singularName": "edition",
+    "pluralName": "editions",
+    "displayName": "Edición"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "fecha": {
+      "type": "date"
+    },
+    "carreras": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::evento.evento",
+      "inversedBy": "editions"
+    }
+  }
+}

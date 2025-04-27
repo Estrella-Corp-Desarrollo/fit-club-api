@@ -401,6 +401,31 @@ export interface ApiCategoryExerciseCategoryExercise
   };
 }
 
+export interface ApiCityCity extends Struct.CollectionTypeSchema {
+  collectionName: 'cities';
+  info: {
+    displayName: 'Ciudades';
+    pluralName: 'cities';
+    singularName: 'city';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::city.city'> &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiClubClub extends Struct.CollectionTypeSchema {
   collectionName: 'clubs';
   info: {
@@ -458,6 +483,35 @@ export interface ApiDistanceDistance extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiEditionEdition extends Struct.CollectionTypeSchema {
+  collectionName: 'editions';
+  info: {
+    displayName: 'Edici\u00F3n';
+    pluralName: 'editions';
+    singularName: 'edition';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    carreras: Schema.Attribute.Relation<'manyToMany', 'api::evento.evento'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    fecha: Schema.Attribute.Date;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::edition.edition'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiEventEvent extends Struct.CollectionTypeSchema {
   collectionName: 'events';
   info: {
@@ -469,7 +523,6 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
-    carrera: Schema.Attribute.Relation<'oneToOne', 'api::evento.evento'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -497,15 +550,15 @@ export interface ApiEventoEvento extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    city: Schema.Attribute.Relation<'oneToOne', 'api::city.city'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    description: Schema.Attribute.Blocks;
     distancias: Schema.Attribute.Relation<
       'oneToMany',
       'api::distance.distance'
     >;
-    evento: Schema.Attribute.Relation<'oneToOne', 'api::event.event'>;
+    editions: Schema.Attribute.Relation<'manyToMany', 'api::edition.edition'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -541,7 +594,6 @@ export interface ApiExerciseExercise extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     description: Schema.Attribute.Text & Schema.Attribute.Required;
-    image: Schema.Attribute.Media<'images'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -653,6 +705,41 @@ export interface ApiNewNew extends Struct.CollectionTypeSchema {
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     url: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface ApiParticipacionParticipacion
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'participaciones';
+  info: {
+    displayName: 'Participaci\u00F3n';
+    pluralName: 'participaciones';
+    singularName: 'participacion';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    athletes: Schema.Attribute.Relation<
+      'oneToMany',
+      'plugin::users-permissions.user'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    editions: Schema.Attribute.Relation<'oneToMany', 'api::edition.edition'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::participacion.participacion'
+    > &
+      Schema.Attribute.Private;
+    position: Schema.Attribute.Integer;
+    publishedAt: Schema.Attribute.DateTime;
+    time: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -1328,14 +1415,17 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::category-exercise.category-exercise': ApiCategoryExerciseCategoryExercise;
+      'api::city.city': ApiCityCity;
       'api::club.club': ApiClubClub;
       'api::distance.distance': ApiDistanceDistance;
+      'api::edition.edition': ApiEditionEdition;
       'api::event.event': ApiEventEvent;
       'api::evento.evento': ApiEventoEvento;
       'api::exercise.exercise': ApiExerciseExercise;
       'api::goal.goal': ApiGoalGoal;
       'api::group-of-athlete.group-of-athlete': ApiGroupOfAthleteGroupOfAthlete;
       'api::new.new': ApiNewNew;
+      'api::participacion.participacion': ApiParticipacionParticipacion;
       'api::personal-best.personal-best': ApiPersonalBestPersonalBest;
       'api::season.season': ApiSeasonSeason;
       'api::workout-type.workout-type': ApiWorkoutTypeWorkoutType;
