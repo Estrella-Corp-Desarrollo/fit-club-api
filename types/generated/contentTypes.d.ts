@@ -512,32 +512,6 @@ export interface ApiEditionEdition extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiEventEvent extends Struct.CollectionTypeSchema {
-  collectionName: 'events';
-  info: {
-    displayName: 'Eventos';
-    pluralName: 'events';
-    singularName: 'event';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    edition: Schema.Attribute.Date;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<'oneToMany', 'api::event.event'> &
-      Schema.Attribute.Private;
-    name: Schema.Attribute.String;
-    publishedAt: Schema.Attribute.DateTime;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
 export interface ApiEventoEvento extends Struct.CollectionTypeSchema {
   collectionName: 'eventos';
   info: {
@@ -809,6 +783,37 @@ export interface ApiSeasonSeason extends Struct.CollectionTypeSchema {
     name: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     start: Schema.Attribute.Date;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiTestTest extends Struct.CollectionTypeSchema {
+  collectionName: 'tests';
+  info: {
+    description: '';
+    displayName: 'Test';
+    pluralName: 'tests';
+    singularName: 'test';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    athlete: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    distancia: Schema.Attribute.Relation<'oneToOne', 'api::distance.distance'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::test.test'> &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1419,7 +1424,6 @@ declare module '@strapi/strapi' {
       'api::club.club': ApiClubClub;
       'api::distance.distance': ApiDistanceDistance;
       'api::edition.edition': ApiEditionEdition;
-      'api::event.event': ApiEventEvent;
       'api::evento.evento': ApiEventoEvento;
       'api::exercise.exercise': ApiExerciseExercise;
       'api::goal.goal': ApiGoalGoal;
@@ -1428,6 +1432,7 @@ declare module '@strapi/strapi' {
       'api::participacion.participacion': ApiParticipacionParticipacion;
       'api::personal-best.personal-best': ApiPersonalBestPersonalBest;
       'api::season.season': ApiSeasonSeason;
+      'api::test.test': ApiTestTest;
       'api::workout-type.workout-type': ApiWorkoutTypeWorkoutType;
       'api::workout.workout': ApiWorkoutWorkout;
       'plugin::content-releases.release': PluginContentReleasesRelease;
