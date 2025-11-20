@@ -1367,11 +1367,10 @@ export interface PluginUsersPermissionsUser
         minLength: 6;
       }>;
     gender: Schema.Attribute.String &
-      Schema.Attribute.Required &
       Schema.Attribute.SetMinMaxLength<{
         maxLength: 1;
       }>;
-    height: Schema.Attribute.Integer & Schema.Attribute.Required;
+    height: Schema.Attribute.Integer;
     lastname: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -1405,7 +1404,7 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 3;
       }>;
-    weight: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    weight: Schema.Attribute.Decimal;
   };
 }
 

@@ -77,11 +77,11 @@
     },
     "weight": {
       "type": "decimal",
-      "required": true
+      "required": false
     },
     "height": {
       "type": "integer",
-      "required": true
+      "required": false
     },
     "avatar": {
       "type": "media",
@@ -96,7 +96,7 @@
     },
     "gender": {
       "type": "string",
-      "required": true,
+      "required": false,
       "maxLength": 1
     },
     "club": {

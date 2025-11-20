@@ -20,20 +20,16 @@ module.exports = {
     if (
       !name ||
       !role ||
-      !gender ||
       !email ||
       !password ||
-      !weight ||
-      !height ||
       !lastname ||
-      !birthdate||
       !username
     ) {
       return ctx.badRequest('Missing required fields');
     }
 
     const formatedEmail = email.toLowerCase()
-    const formattedBirthdate = new Date(birthdate).toISOString().split('T')[0];
+    const formattedBirthdate = birthdate ? new Date(birthdate).toISOString().split('T')[0] : null;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return ctx.badRequest('Invalid email format');
@@ -64,22 +60,34 @@ module.exports = {
       const roleId = roleData.id; // Obtener el ID del rol
 
       try {
-        const user = await strapi.plugins[
-          'users-permissions'
-        ].services.user.add({
+        const userData: any = {
           name,
           role: roleId, // Pasar el ID del rol
-          gender,
-          email:formatedEmail,
+          email: formatedEmail,
           password,
           club,
-          birthdate: formattedBirthdate,
           avatar,
-          weight,
-          height,
           username,
           provider: 'local',
-        });
+        };
+        
+        // Add optional fields only if provided
+        if (gender) {
+          userData.gender = gender;
+        }
+        if (formattedBirthdate) {
+          userData.birthdate = formattedBirthdate;
+        }
+        if (weight) {
+          userData.weight = weight;
+        }
+        if (height) {
+          userData.height = height;
+        }
+        
+        const user = await strapi.plugins[
+          'users-permissions'
+        ].services.user.add(userData);
 
         const sanitizedUser = {
           id: user.id,
@@ -238,6 +246,28 @@ module.exports = {
     } catch (error) {
       console.error(error);
       return ctx.internalServerError('Error updating user');
+    }
+  },
+  async delete(ctx) {
+    const { id } = ctx.params;
+
+    try {
+      // Verificamos que el usuario exista
+      const existingUser = await strapi
+        .query('plugin::users-permissions.user')
+        .findOne({ where: { id } });
+
+      if (!existingUser) {
+        return ctx.notFound('User not found');
+      }
+
+      // Eliminar el usuario usando entityService
+      await strapi.entityService.delete('plugin::users-permissions.user', id);
+
+      return ctx.send({ message: 'User deleted successfully' });
+    } catch (error) {
+      console.error(error);
+      return ctx.internalServerError('Error deleting user');
     }
   }
   
