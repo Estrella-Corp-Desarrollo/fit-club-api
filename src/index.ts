@@ -11,6 +11,8 @@ const AUTHENTICATED_PERSONAL_BEST_ACTIONS = [
   'api::personal-best.personal-best.upsertMe',
 ];
 const AUTHENTICATED_RACE_RESULT_ACTIONS = [
+  'api::evento.evento.appFind',
+  'api::evento.evento.appFindOne',
   'api::edition.edition.search',
   'api::participacion.participacion.me',
   'api::participacion.participacion.byEdition',
