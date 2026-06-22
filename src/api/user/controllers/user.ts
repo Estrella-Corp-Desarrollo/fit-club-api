@@ -220,7 +220,19 @@ module.exports = {
       if (birthdate) {
         updatedUserData.birthdate = new Date(birthdate).toISOString().split('T')[0];
       }
-      if (avatar) updatedUserData.avatar = avatar;
+      if (avatar) {
+        const avatarId = typeof avatar === 'object' ? avatar.id : avatar;
+        const avatarFile = await strapi
+          .query('plugin::upload.file')
+          .findOne({ where: { id: avatarId } });
+        const allowedAvatarMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+        if (!avatarFile || !allowedAvatarMimeTypes.includes(avatarFile.mime)) {
+          return ctx.badRequest('Only JPG, PNG and WebP avatars are allowed');
+        }
+
+        updatedUserData.avatar = avatar;
+      }
       if (club) updatedUserData.club = club;
       if (weight) updatedUserData.weight = weight;
       if (height) updatedUserData.height = height;
