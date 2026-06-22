@@ -694,14 +694,14 @@ export interface ApiParticipacionParticipacion
     draftAndPublish: true;
   };
   attributes: {
-    athletes: Schema.Attribute.Relation<
-      'oneToMany',
+    athlete: Schema.Attribute.Relation<
+      'manyToOne',
       'plugin::users-permissions.user'
     >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    editions: Schema.Attribute.Relation<'oneToMany', 'api::edition.edition'>;
+    edition: Schema.Attribute.Relation<'manyToOne', 'api::edition.edition'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -710,7 +710,7 @@ export interface ApiParticipacionParticipacion
       Schema.Attribute.Private;
     position: Schema.Attribute.Integer;
     publishedAt: Schema.Attribute.DateTime;
-    time: Schema.Attribute.String;
+    time: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -729,6 +729,7 @@ export interface ApiPersonalBestPersonalBest
     draftAndPublish: true;
   };
   attributes: {
+    achievedAt: Schema.Attribute.Date & Schema.Attribute.Required;
     athlete: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
@@ -736,7 +737,7 @@ export interface ApiPersonalBestPersonalBest
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    distance: Schema.Attribute.Relation<'oneToOne', 'api::distance.distance'>;
+    distance: Schema.Attribute.Relation<'manyToOne', 'api::distance.distance'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -744,6 +745,7 @@ export interface ApiPersonalBestPersonalBest
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
+    time: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1352,7 +1354,7 @@ export interface PluginUsersPermissionsUser
     draftAndPublish: false;
   };
   attributes: {
-    avatar: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    avatar: Schema.Attribute.Media<'images'>;
     birthdate: Schema.Attribute.Date;
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     club: Schema.Attribute.Relation<'oneToOne', 'api::club.club'>;
@@ -1379,6 +1381,10 @@ export interface PluginUsersPermissionsUser
     > &
       Schema.Attribute.Private;
     name: Schema.Attribute.String & Schema.Attribute.Required;
+    participaciones: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::participacion.participacion'
+    >;
     password: Schema.Attribute.Password &
       Schema.Attribute.Private &
       Schema.Attribute.SetMinMaxLength<{

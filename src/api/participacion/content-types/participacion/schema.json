@@ -11,19 +11,21 @@
   },
   "attributes": {
     "time": {
-      "type": "string"
+      "type": "string",
+      "required": true
     },
     "position": {
       "type": "integer"
     },
-    "athletes": {
+    "athlete": {
       "type": "relation",
-      "relation": "oneToMany",
-      "target": "plugin::users-permissions.user"
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "participaciones"
     },
-    "editions": {
+    "edition": {
       "type": "relation",
-      "relation": "oneToMany",
+      "relation": "manyToOne",
       "target": "api::edition.edition"
     }
   }

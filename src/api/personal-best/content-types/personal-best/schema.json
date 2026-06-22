@@ -18,8 +18,16 @@
     },
     "distance": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "manyToOne",
       "target": "api::distance.distance"
+    },
+    "time": {
+      "type": "string",
+      "required": true
+    },
+    "achievedAt": {
+      "type": "date",
+      "required": true
     }
   }
 }

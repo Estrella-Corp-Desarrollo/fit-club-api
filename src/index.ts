@@ -1,4 +1,53 @@
-// import type { Core } from '@strapi/strapi';
+import type { Core } from '@strapi/strapi';
+
+const PUBLIC_PASSWORD_RECOVERY_ACTIONS = [
+  'plugin::users-permissions.auth.forgotPassword',
+  'plugin::users-permissions.auth.resetPassword',
+];
+
+const AUTHENTICATED_PASSWORD_ACTIONS = ['plugin::users-permissions.auth.changePassword'];
+const AUTHENTICATED_PERSONAL_BEST_ACTIONS = [
+  'api::personal-best.personal-best.me',
+  'api::personal-best.personal-best.upsertMe',
+];
+const AUTHENTICATED_RACE_RESULT_ACTIONS = [
+  'api::edition.edition.search',
+  'api::participacion.participacion.me',
+  'api::participacion.participacion.byEdition',
+  'api::participacion.participacion.createMe',
+  'api::participacion.participacion.updateMe',
+];
+
+const ensureRolePermissions = async (strapi: Core.Strapi, roleType: string, actions: string[]) => {
+  const role = await strapi.db.query('plugin::users-permissions.role').findOne({
+    where: { type: roleType },
+  });
+
+  if (!role) {
+    strapi.log.warn(`${roleType} role not found; password permissions were not configured.`);
+    return;
+  }
+
+  for (const action of actions) {
+    const existingPermission = await strapi.db
+      .query('plugin::users-permissions.permission')
+      .findOne({
+        where: {
+          action,
+          role: { id: role.id },
+        },
+      });
+
+    if (!existingPermission) {
+      await strapi.db.query('plugin::users-permissions.permission').create({
+        data: {
+          action,
+          role: role.id,
+        },
+      });
+    }
+  }
+};
 
 export default {
   /**
@@ -16,5 +65,12 @@ export default {
    * This gives you an opportunity to set up your data model,
    * run jobs, or perform some special logic.
    */
-  bootstrap(/* { strapi }: { strapi: Core.Strapi } */) {},
+  async bootstrap({ strapi }: { strapi: Core.Strapi }) {
+    await ensureRolePermissions(strapi, 'public', PUBLIC_PASSWORD_RECOVERY_ACTIONS);
+    await ensureRolePermissions(strapi, 'authenticated', [
+      ...AUTHENTICATED_PASSWORD_ACTIONS,
+      ...AUTHENTICATED_PERSONAL_BEST_ACTIONS,
+      ...AUTHENTICATED_RACE_RESULT_ACTIONS,
+    ]);
+  },
 };

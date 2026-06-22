@@ -1,7 +1,22 @@
-/**
- * personal-best router
- */
-
-import { factories } from '@strapi/strapi';
-
-export default factories.createCoreRouter('api::personal-best.personal-best');
+export default {
+  routes: [
+    {
+      method: 'GET',
+      path: '/personal-bests/me',
+      handler: 'personal-best.me',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'PUT',
+      path: '/personal-bests/me/:distanceId',
+      handler: 'personal-best.upsertMe',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+  ],
+};
