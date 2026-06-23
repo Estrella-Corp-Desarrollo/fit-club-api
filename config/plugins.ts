@@ -1,4 +1,13 @@
 // ./config/plugins.ts
+const getSpacesRegion = (env) => {
+  const configuredRegion = env('DO_SPACES_REGION') || env('AWS_REGION');
+  if (configuredRegion) return configuredRegion;
+
+  const endpoint = env('DO_SPACES_ENDPOINT', '');
+  const endpointRegion = endpoint.match(/https?:\/\/([^.]+)\.digitaloceanspaces\.com/)?.[1];
+  return endpointRegion || 'nyc3';
+};
+
 export default ({ env }) => ({
   // ...
   'users-permissions': {
@@ -29,7 +38,7 @@ export default ({ env }) => ({
           },
           endpoint: env('DO_SPACES_ENDPOINT'),
           forcePathStyle: false,
-          region: env('DO_SPACES_REGION'),
+          region: getSpacesRegion(env),
           params: {
             Bucket: env('DO_SPACES_BUCKET'),
           },
