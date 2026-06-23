@@ -10,6 +10,31 @@ const TIME_PATTERN = /^\d{1,3}:[0-5]\d:[0-5]\d$/;
 
 const getPayload = (ctx) => ctx.request.body?.data || ctx.request.body || {};
 
+const getPersonalBestById = (strapi, id) =>
+  strapi.db.query(PERSONAL_BEST_UID).findOne({
+    where: {
+      id,
+    },
+    populate: {
+      distance: true,
+    },
+  });
+
+const savePersonalBest = async (strapi, id, data) => {
+  const savedPersonalBest = id
+    ? await strapi.db.query(PERSONAL_BEST_UID).update({
+        where: {
+          id,
+        },
+        data,
+      })
+    : await strapi.db.query(PERSONAL_BEST_UID).create({
+        data,
+      });
+
+  return getPersonalBestById(strapi, savedPersonalBest.id);
+};
+
 const validatePersonalBestPayload = async (ctx, strapi) => {
   const payload = getPayload(ctx);
   const distanceId = Number(payload.distanceId || ctx.params.distanceId);
@@ -126,19 +151,7 @@ export default factories.createCoreController(PERSONAL_BEST_UID, ({ strapi }) =>
       publishedAt: new Date(),
     };
 
-    const personalBest = existingPersonalBest
-      ? await strapi.entityService.update(PERSONAL_BEST_UID, existingPersonalBest.id, {
-          data,
-          populate: {
-            distance: true,
-          },
-        })
-      : await strapi.entityService.create(PERSONAL_BEST_UID, {
-          data,
-          populate: {
-            distance: true,
-          },
-        });
+    const personalBest = await savePersonalBest(strapi, existingPersonalBest?.id, data);
 
     return ctx.send({
       data: formatPersonalBest(personalBest),
@@ -192,19 +205,30 @@ export default factories.createCoreController(PERSONAL_BEST_UID, ({ strapi }) =>
     });
 
     if (duplicatePersonalBest) {
-      return ctx.badRequest('Ya tienes una marca registrada para esta distancia');
-    }
-
-    const personalBest = await strapi.entityService.update(PERSONAL_BEST_UID, id, {
-      data: {
+      const personalBest = await savePersonalBest(strapi, duplicatePersonalBest.id, {
+        athlete: user.id,
         distance: distance.id,
         time,
         achievedAt,
         publishedAt: new Date(),
-      } as any,
-      populate: {
-        distance: true,
-      },
+      });
+
+      await strapi.db.query(PERSONAL_BEST_UID).delete({
+        where: {
+          id,
+        },
+      });
+
+      return ctx.send({
+        data: formatPersonalBest(personalBest),
+      });
+    }
+
+    const personalBest = await savePersonalBest(strapi, id, {
+      distance: distance.id,
+      time,
+      achievedAt,
+      publishedAt: new Date(),
     });
 
     return ctx.send({
