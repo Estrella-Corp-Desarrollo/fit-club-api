@@ -10,29 +10,20 @@ const TIME_PATTERN = /^\d{1,3}:[0-5]\d:[0-5]\d$/;
 
 const getPayload = (ctx) => ctx.request.body?.data || ctx.request.body || {};
 
-const getPersonalBestById = (strapi, id) =>
-  strapi.db.query(PERSONAL_BEST_UID).findOne({
-    where: {
-      id,
-    },
-    populate: {
-      distance: true,
-    },
-  });
-
 const savePersonalBest = async (strapi, id, data) => {
-  const savedPersonalBest = id
-    ? await strapi.db.query(PERSONAL_BEST_UID).update({
-        where: {
-          id,
+  return id
+    ? await strapi.entityService.update(PERSONAL_BEST_UID, id, {
+        data,
+        populate: {
+          distance: true,
         },
-        data,
       })
-    : await strapi.db.query(PERSONAL_BEST_UID).create({
+    : await strapi.entityService.create(PERSONAL_BEST_UID, {
         data,
+        populate: {
+          distance: true,
+        },
       });
-
-  return getPersonalBestById(strapi, savedPersonalBest.id);
 };
 
 const validatePersonalBestPayload = async (ctx, strapi) => {
@@ -190,6 +181,12 @@ export default factories.createCoreController(PERSONAL_BEST_UID, ({ strapi }) =>
     if (validation.error) return validation.error;
 
     const { achievedAt, distance, time } = validation.data;
+    const existingDistanceId = existingPersonalBest.distance?.id;
+
+    if (existingDistanceId && Number(existingDistanceId) !== Number(distance.id)) {
+      return ctx.badRequest('No puedes cambiar la distancia de una marca existente');
+    }
+
     const duplicatePersonalBest = await strapi.db.query(PERSONAL_BEST_UID).findOne({
       where: {
         id: {
@@ -205,23 +202,7 @@ export default factories.createCoreController(PERSONAL_BEST_UID, ({ strapi }) =>
     });
 
     if (duplicatePersonalBest) {
-      const personalBest = await savePersonalBest(strapi, duplicatePersonalBest.id, {
-        athlete: user.id,
-        distance: distance.id,
-        time,
-        achievedAt,
-        publishedAt: new Date(),
-      });
-
-      await strapi.db.query(PERSONAL_BEST_UID).delete({
-        where: {
-          id,
-        },
-      });
-
-      return ctx.send({
-        data: formatPersonalBest(personalBest),
-      });
+      return ctx.badRequest('Ya tienes una marca registrada para esta distancia');
     }
 
     const personalBest = await savePersonalBest(strapi, id, {
