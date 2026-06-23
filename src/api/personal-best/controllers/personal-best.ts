@@ -187,24 +187,6 @@ export default factories.createCoreController(PERSONAL_BEST_UID, ({ strapi }) =>
       return ctx.badRequest('No puedes cambiar la distancia de una marca existente');
     }
 
-    const duplicatePersonalBest = await strapi.db.query(PERSONAL_BEST_UID).findOne({
-      where: {
-        id: {
-          $ne: id,
-        },
-        athlete: {
-          id: user.id,
-        },
-        distance: {
-          id: distance.id,
-        },
-      },
-    });
-
-    if (duplicatePersonalBest) {
-      return ctx.badRequest('Ya tienes una marca registrada para esta distancia');
-    }
-
     const personalBest = await savePersonalBest(strapi, id, {
       distance: distance.id,
       time,
