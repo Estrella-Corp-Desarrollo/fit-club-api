@@ -10,6 +10,43 @@ const TIME_PATTERN = /^\d{1,3}:[0-5]\d:[0-5]\d$/;
 
 const getPayload = (ctx) => ctx.request.body?.data || ctx.request.body || {};
 
+const validatePersonalBestPayload = async (ctx, strapi) => {
+  const payload = getPayload(ctx);
+  const distanceId = Number(payload.distanceId || ctx.params.distanceId);
+  const time = typeof payload.time === 'string' ? payload.time.trim() : '';
+  const achievedAt = typeof payload.achievedAt === 'string' ? payload.achievedAt : '';
+
+  if (!Number.isInteger(distanceId) || distanceId <= 0) {
+    return { error: ctx.badRequest('Distance is required') };
+  }
+
+  if (!TIME_PATTERN.test(time)) {
+    return { error: ctx.badRequest('Time must use HH:MM:SS format') };
+  }
+
+  if (!achievedAt || Number.isNaN(new Date(achievedAt).getTime())) {
+    return { error: ctx.badRequest('A valid achievedAt date is required') };
+  }
+
+  const distance = await strapi.db.query(DISTANCE_UID).findOne({
+    where: {
+      id: distanceId,
+    },
+  });
+
+  if (!distance) {
+    return { error: ctx.notFound('Distance not found') };
+  }
+
+  return {
+    data: {
+      achievedAt,
+      distance,
+      time,
+    },
+  };
+};
+
 const formatPersonalBest = (personalBest) => ({
   id: personalBest.id,
   documentId: personalBest.documentId,
@@ -63,41 +100,17 @@ export default factories.createCoreController(PERSONAL_BEST_UID, ({ strapi }) =>
       return ctx.unauthorized('Authentication required');
     }
 
-    const distanceId = Number(ctx.params.distanceId);
+    const validation = await validatePersonalBestPayload(ctx, strapi);
+    if (validation.error) return validation.error;
 
-    if (!Number.isInteger(distanceId) || distanceId <= 0) {
-      return ctx.badRequest('Distance is required');
-    }
-
-    const payload = getPayload(ctx);
-    const time = typeof payload.time === 'string' ? payload.time.trim() : '';
-    const achievedAt = typeof payload.achievedAt === 'string' ? payload.achievedAt : '';
-
-    if (!TIME_PATTERN.test(time)) {
-      return ctx.badRequest('Time must use HH:MM:SS format');
-    }
-
-    if (!achievedAt || Number.isNaN(new Date(achievedAt).getTime())) {
-      return ctx.badRequest('A valid achievedAt date is required');
-    }
-
-    const distance = await strapi.db.query(DISTANCE_UID).findOne({
-      where: {
-        id: distanceId,
-      },
-    });
-
-    if (!distance) {
-      return ctx.notFound('Distance not found');
-    }
-
+    const { achievedAt, distance, time } = validation.data;
     const existingPersonalBest = await strapi.db.query(PERSONAL_BEST_UID).findOne({
       where: {
         athlete: {
           id: user.id,
         },
         distance: {
-          id: distanceId,
+          id: distance.id,
         },
       },
       populate: {
@@ -126,6 +139,73 @@ export default factories.createCoreController(PERSONAL_BEST_UID, ({ strapi }) =>
             distance: true,
           },
         });
+
+    return ctx.send({
+      data: formatPersonalBest(personalBest),
+    });
+  },
+
+  async updateMe(ctx) {
+    const user = ctx.state.user;
+
+    if (!user) {
+      return ctx.unauthorized('Authentication required');
+    }
+
+    const id = Number(ctx.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return ctx.badRequest('Personal best is required');
+    }
+
+    const existingPersonalBest = await strapi.db.query(PERSONAL_BEST_UID).findOne({
+      where: {
+        id,
+        athlete: {
+          id: user.id,
+        },
+      },
+      populate: {
+        distance: true,
+      },
+    });
+
+    if (!existingPersonalBest) {
+      return ctx.notFound('Personal best not found');
+    }
+
+    const validation = await validatePersonalBestPayload(ctx, strapi);
+    if (validation.error) return validation.error;
+
+    const { achievedAt, distance, time } = validation.data;
+    const duplicatePersonalBest = await strapi.db.query(PERSONAL_BEST_UID).findOne({
+      where: {
+        id: {
+          $ne: id,
+        },
+        athlete: {
+          id: user.id,
+        },
+        distance: {
+          id: distance.id,
+        },
+      },
+    });
+
+    if (duplicatePersonalBest) {
+      return ctx.badRequest('Ya tienes una marca registrada para esta distancia');
+    }
+
+    const personalBest = await strapi.entityService.update(PERSONAL_BEST_UID, id, {
+      data: {
+        distance: distance.id,
+        time,
+        achievedAt,
+        publishedAt: new Date(),
+      } as any,
+      populate: {
+        distance: true,
+      },
+    });
 
     return ctx.send({
       data: formatPersonalBest(personalBest),

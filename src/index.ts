@@ -9,6 +9,7 @@ const AUTHENTICATED_PASSWORD_ACTIONS = ['plugin::users-permissions.auth.changePa
 const AUTHENTICATED_PERSONAL_BEST_ACTIONS = [
   'api::personal-best.personal-best.me',
   'api::personal-best.personal-best.upsertMe',
+  'api::personal-best.personal-best.updateMe',
 ];
 const AUTHENTICATED_RACE_RESULT_ACTIONS = [
   'api::evento.evento.appFind',

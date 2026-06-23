@@ -11,6 +11,15 @@ export default {
     },
     {
       method: 'PUT',
+      path: '/personal-bests/me/record/:id',
+      handler: 'personal-best.updateMe',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'PUT',
       path: '/personal-bests/me/:distanceId',
       handler: 'personal-best.upsertMe',
       config: {
