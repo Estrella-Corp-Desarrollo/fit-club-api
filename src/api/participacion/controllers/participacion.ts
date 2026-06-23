@@ -154,6 +154,7 @@ export default factories.createCoreController(PARTICIPACION_UID, ({ strapi }) =>
           },
         },
       },
+      limit: -1,
       populate: populateParticipacion,
     } as any)) as any[];
 
@@ -215,6 +216,7 @@ export default factories.createCoreController(PARTICIPACION_UID, ({ strapi }) =>
           },
         },
       },
+      limit: -1,
       populate: populateEditionResults,
     } as any)) as any[];
 
