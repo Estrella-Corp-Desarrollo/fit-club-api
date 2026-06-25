@@ -20,7 +20,7 @@ module.exports = {
     },
     {
       method: 'GET',
-      path: '/users/:id',
+      path: '/club-members/:id',
       handler: 'user.findOne',
       config: {
         policies: [],
