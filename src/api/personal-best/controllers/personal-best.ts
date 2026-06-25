@@ -26,15 +26,10 @@ const savePersonalBest = async (strapi, id, data) => {
       });
 };
 
-const validatePersonalBestPayload = async (ctx, strapi) => {
+const validatePersonalBestFields = (ctx): any => {
   const payload = getPayload(ctx);
-  const distanceId = Number(payload.distanceId || ctx.params.distanceId);
   const time = typeof payload.time === 'string' ? payload.time.trim() : '';
   const achievedAt = typeof payload.achievedAt === 'string' ? payload.achievedAt : '';
-
-  if (!Number.isInteger(distanceId) || distanceId <= 0) {
-    return { error: ctx.badRequest('Distance is required') };
-  }
 
   if (!TIME_PATTERN.test(time)) {
     return { error: ctx.badRequest('Time must use HH:MM:SS format') };
@@ -42,6 +37,25 @@ const validatePersonalBestPayload = async (ctx, strapi) => {
 
   if (!achievedAt || Number.isNaN(new Date(achievedAt).getTime())) {
     return { error: ctx.badRequest('A valid achievedAt date is required') };
+  }
+
+  return {
+    data: {
+      achievedAt,
+      time,
+    },
+  };
+};
+
+const validatePersonalBestPayload = async (ctx, strapi): Promise<any> => {
+  const payload = getPayload(ctx);
+  const distanceId = Number(payload.distanceId || payload.distance || ctx.params.distanceId);
+  const validation = validatePersonalBestFields(ctx);
+
+  if (validation.error) return validation;
+
+  if (!Number.isInteger(distanceId) || distanceId <= 0) {
+    return { error: ctx.badRequest('Distance is required') };
   }
 
   const distance = await strapi.db.query(DISTANCE_UID).findOne({
@@ -56,11 +70,42 @@ const validatePersonalBestPayload = async (ctx, strapi) => {
 
   return {
     data: {
-      achievedAt,
+      achievedAt: validation.data.achievedAt,
       distance,
-      time,
+      time: validation.data.time,
     },
   };
+};
+
+const validateDistance = async (ctx, strapi): Promise<any> => {
+  const payload = getPayload(ctx);
+  const distanceId = Number(payload.distanceId || payload.distance || ctx.params.distanceId);
+
+  if (!Number.isInteger(distanceId) || distanceId <= 0) {
+    return { error: ctx.badRequest('Distance is required') };
+  }
+
+  const distance = await strapi.db.query(DISTANCE_UID).findOne({
+    where: {
+      id: distanceId,
+    },
+  });
+
+  if (!distance) {
+    return { error: ctx.notFound('Distance not found') };
+  }
+
+  return { data: { distance } };
+};
+
+const validateOptionalDistance = async (ctx, strapi): Promise<any> => {
+  const payload = getPayload(ctx);
+
+  if (!payload.distanceId && !payload.distance && !ctx.params.distanceId) {
+    return { data: { distance: null } };
+  }
+
+  return validateDistance(ctx, strapi);
 };
 
 const formatPersonalBest = (personalBest) => ({
@@ -177,22 +222,24 @@ export default factories.createCoreController(PERSONAL_BEST_UID, ({ strapi }) =>
       return ctx.notFound('Personal best not found');
     }
 
-    const validation = await validatePersonalBestPayload(ctx, strapi);
+    const validation = validatePersonalBestFields(ctx);
     if (validation.error) return validation.error;
 
-    const { achievedAt, distance, time } = validation.data;
-    const existingDistanceId = existingPersonalBest.distance?.id;
+    const { achievedAt, time } = validation.data;
+    const distanceValidation = await validateOptionalDistance(ctx, strapi);
+    if (distanceValidation.error) return distanceValidation.error;
 
-    if (existingDistanceId && Number(existingDistanceId) !== Number(distance.id)) {
-      return ctx.badRequest('No puedes cambiar la distancia de una marca existente');
-    }
-
-    const personalBest = await savePersonalBest(strapi, id, {
-      distance: distance.id,
+    const data: any = {
       time,
       achievedAt,
       publishedAt: new Date(),
-    });
+    };
+
+    if (distanceValidation.data.distance) {
+      data.distance = distanceValidation.data.distance.id;
+    }
+
+    const personalBest = await savePersonalBest(strapi, id, data);
 
     return ctx.send({
       data: formatPersonalBest(personalBest),
