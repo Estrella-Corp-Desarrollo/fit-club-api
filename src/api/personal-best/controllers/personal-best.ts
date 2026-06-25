@@ -10,20 +10,69 @@ const TIME_PATTERN = /^\d{1,3}:[0-5]\d:[0-5]\d$/;
 
 const getPayload = (ctx) => ctx.request.body?.data || ctx.request.body || {};
 
-const savePersonalBest = async (strapi, id, data) => {
-  return id
-    ? await strapi.entityService.update(PERSONAL_BEST_UID, id, {
-        data,
-        populate: {
-          distance: true,
-        },
+const savePersonalBest = async (strapi, personalBest, data) => {
+  const options: any = {
+    data,
+    populate: {
+      distance: true,
+    },
+    status: 'published',
+  };
+
+  return personalBest
+    ? await strapi.documents(PERSONAL_BEST_UID).update({
+        ...options,
+        documentId: personalBest.documentId,
       })
-    : await strapi.entityService.create(PERSONAL_BEST_UID, {
-        data,
-        populate: {
-          distance: true,
-        },
-      });
+    : await strapi.documents(PERSONAL_BEST_UID).create(options);
+};
+
+const connectRelation = (entity) => ({
+  connect: [
+    {
+      documentId: entity.documentId,
+    },
+  ],
+});
+
+const getRelationIdentifier = (value) => {
+  if (!value) return null;
+
+  if (typeof value !== 'object') {
+    return value;
+  }
+
+  const connect = Array.isArray(value.connect) ? value.connect[0] : value.connect;
+
+  return (
+    value.id ||
+    value.documentId ||
+    connect?.id ||
+    connect?.documentId ||
+    null
+  );
+};
+
+const getDistanceWhere = (ctx) => {
+  const payload = getPayload(ctx);
+  const distanceIdentifier = getRelationIdentifier(
+    payload.distanceId || payload.distance || ctx.params.distanceId
+  );
+  const numericDistanceId = Number(distanceIdentifier);
+
+  if (Number.isInteger(numericDistanceId) && numericDistanceId > 0) {
+    return {
+      id: numericDistanceId,
+    };
+  }
+
+  if (typeof distanceIdentifier === 'string' && distanceIdentifier.trim()) {
+    return {
+      documentId: distanceIdentifier,
+    };
+  }
+
+  return null;
 };
 
 const validatePersonalBestFields = (ctx): any => {
@@ -48,20 +97,17 @@ const validatePersonalBestFields = (ctx): any => {
 };
 
 const validatePersonalBestPayload = async (ctx, strapi): Promise<any> => {
-  const payload = getPayload(ctx);
-  const distanceId = Number(payload.distanceId || payload.distance || ctx.params.distanceId);
+  const distanceWhere = getDistanceWhere(ctx);
   const validation = validatePersonalBestFields(ctx);
 
   if (validation.error) return validation;
 
-  if (!Number.isInteger(distanceId) || distanceId <= 0) {
+  if (!distanceWhere) {
     return { error: ctx.badRequest('Distance is required') };
   }
 
   const distance = await strapi.db.query(DISTANCE_UID).findOne({
-    where: {
-      id: distanceId,
-    },
+    where: distanceWhere,
   });
 
   if (!distance) {
@@ -78,17 +124,14 @@ const validatePersonalBestPayload = async (ctx, strapi): Promise<any> => {
 };
 
 const validateDistance = async (ctx, strapi): Promise<any> => {
-  const payload = getPayload(ctx);
-  const distanceId = Number(payload.distanceId || payload.distance || ctx.params.distanceId);
+  const distanceWhere = getDistanceWhere(ctx);
 
-  if (!Number.isInteger(distanceId) || distanceId <= 0) {
+  if (!distanceWhere) {
     return { error: ctx.badRequest('Distance is required') };
   }
 
   const distance = await strapi.db.query(DISTANCE_UID).findOne({
-    where: {
-      id: distanceId,
-    },
+    where: distanceWhere,
   });
 
   if (!distance) {
@@ -181,13 +224,13 @@ export default factories.createCoreController(PERSONAL_BEST_UID, ({ strapi }) =>
 
     const data: any = {
       athlete: user.id,
-      distance: distance.id,
+      distance: connectRelation(distance),
       time,
       achievedAt,
       publishedAt: new Date(),
     };
 
-    const personalBest = await savePersonalBest(strapi, existingPersonalBest?.id, data);
+    const personalBest = await savePersonalBest(strapi, existingPersonalBest, data);
 
     return ctx.send({
       data: formatPersonalBest(personalBest),
@@ -236,10 +279,10 @@ export default factories.createCoreController(PERSONAL_BEST_UID, ({ strapi }) =>
     };
 
     if (distanceValidation.data.distance) {
-      data.distance = distanceValidation.data.distance.id;
+      data.distance = connectRelation(distanceValidation.data.distance);
     }
 
-    const personalBest = await savePersonalBest(strapi, id, data);
+    const personalBest = await savePersonalBest(strapi, existingPersonalBest, data);
 
     return ctx.send({
       data: formatPersonalBest(personalBest),
