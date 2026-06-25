@@ -19,6 +19,15 @@ module.exports = {
       },
     },
     {
+      method: 'GET',
+      path: '/users/:id',
+      handler: 'user.findOne',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
       method: 'PATCH',
       path: '/users/:id',
       handler: 'user.update',  // Asegúrate de que apunte al método correcto

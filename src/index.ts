@@ -20,6 +20,10 @@ const AUTHENTICATED_RACE_RESULT_ACTIONS = [
   'api::participacion.participacion.createMe',
   'api::participacion.participacion.updateMe',
 ];
+const AUTHENTICATED_USER_ACTIONS = [
+  'api::user.user.find',
+  'api::user.user.findOne',
+];
 
 const ensureRolePermissions = async (strapi: Core.Strapi, roleType: string, actions: string[]) => {
   const role = await strapi.db.query('plugin::users-permissions.role').findOne({
@@ -74,6 +78,7 @@ export default {
       ...AUTHENTICATED_PASSWORD_ACTIONS,
       ...AUTHENTICATED_PERSONAL_BEST_ACTIONS,
       ...AUTHENTICATED_RACE_RESULT_ACTIONS,
+      ...AUTHENTICATED_USER_ACTIONS,
     ]);
   },
 };

@@ -1,5 +1,44 @@
 'use strict';
 
+const USER_UID = 'plugin::users-permissions.user';
+
+const formatPersonalRecord = (record) => ({
+  id: record.id,
+  documentId: record.documentId,
+  time: record.time,
+  achievedAt: record.achievedAt,
+  distance: record.distance
+    ? {
+        id: record.distance.id,
+        documentId: record.distance.documentId,
+        name: record.distance.name,
+      }
+    : null,
+});
+
+const formatMemberDetail = (member) => ({
+  id: member.id,
+  documentId: member.documentId,
+  name: member.name,
+  lastname: member.lastname,
+  email: member.email,
+  avatar: member.avatar
+    ? {
+        id: member.avatar.id,
+        url: member.avatar.url,
+      }
+    : null,
+  personal_record: Array.isArray(member.personal_record)
+    ? member.personal_record
+        .sort(
+          (firstRecord, secondRecord) =>
+            new Date(secondRecord.achievedAt).getTime() -
+            new Date(firstRecord.achievedAt).getTime()
+        )
+        .map(formatPersonalRecord)
+    : [],
+});
+
 module.exports = {
   async register(ctx) {
     const {
@@ -155,6 +194,52 @@ module.exports = {
       console.error(error);
       return ctx.internalServerError('Something went wrong');
     }
+  },
+  async findOne(ctx) {
+    const user = ctx.state.user;
+    const id = Number(ctx.params.id);
+
+    if (!user) {
+      return ctx.unauthorized('Authentication required');
+    }
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return ctx.badRequest('User is required');
+    }
+
+    const currentUser = await strapi.db.query(USER_UID).findOne({
+      where: {
+        id: user.id,
+      },
+      populate: {
+        club: true,
+      },
+    });
+
+    const member = await strapi.db.query(USER_UID).findOne({
+      where: {
+        id,
+      },
+      populate: {
+        avatar: true,
+        club: true,
+        personal_record: {
+          populate: {
+            distance: true,
+          },
+        },
+      },
+    });
+
+    if (!member) {
+      return ctx.notFound('User not found');
+    }
+
+    if (currentUser?.club?.id && member.club?.id !== currentUser.club.id) {
+      return ctx.notFound('User not found');
+    }
+
+    return ctx.send(formatMemberDetail(member));
   },
   async update(ctx) {
     const { id } = ctx.params;
