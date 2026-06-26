@@ -233,6 +233,64 @@ export default factories.createCoreController(PARTICIPACION_UID, ({ strapi }) =>
     });
   },
 
+  async latestByAthlete(ctx) {
+    const user = ctx.state.user;
+
+    if (!user) {
+      return ctx.unauthorized('Authentication required');
+    }
+
+    const athleteId = Number(ctx.params.athleteId);
+    if (!Number.isInteger(athleteId) || athleteId <= 0) {
+      return ctx.badRequest('Athlete is required');
+    }
+
+    const authenticatedUser = await getAuthenticatedUserWithClub(strapi, user.id);
+    const clubId = authenticatedUser?.club?.id;
+
+    if (!clubId) {
+      return ctx.send({
+        data: [],
+      });
+    }
+
+    const athlete = await strapi.db.query('plugin::users-permissions.user').findOne({
+      where: {
+        id: athleteId,
+      },
+      populate: {
+        club: true,
+      },
+    });
+
+    if (!athlete || athlete.club?.id !== clubId) {
+      return ctx.notFound('Athlete not found');
+    }
+
+    const participaciones = (await strapi.entityService.findMany(PARTICIPACION_UID, {
+      filters: {
+        athlete: {
+          id: {
+            $eq: athleteId,
+          },
+        },
+      },
+      limit: -1,
+      populate: populateParticipacion,
+    } as any)) as any[];
+
+    return ctx.send({
+      data: participaciones
+        .sort(
+          (firstParticipacion, secondParticipacion) =>
+            new Date(secondParticipacion.edition?.fecha || 0).getTime() -
+            new Date(firstParticipacion.edition?.fecha || 0).getTime()
+        )
+        .slice(0, 5)
+        .map(formatParticipacion),
+    });
+  },
+
   async createMe(ctx) {
     const user = ctx.state.user;
 

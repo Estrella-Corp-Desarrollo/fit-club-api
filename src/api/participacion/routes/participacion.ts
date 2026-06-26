@@ -19,6 +19,15 @@ export default {
       },
     },
     {
+      method: 'GET',
+      path: '/participaciones/athlete/:athleteId/latest',
+      handler: 'participacion.latestByAthlete',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
       method: 'POST',
       path: '/participaciones/me',
       handler: 'participacion.createMe',
