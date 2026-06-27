@@ -11,6 +11,15 @@ export default {
     },
     {
       method: "GET",
+      path: "/app/workouts/mine",
+      handler: "workout.appMine",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: "GET",
       path: "/app/workouts/manage",
       handler: "workout.appManage",
       config: {

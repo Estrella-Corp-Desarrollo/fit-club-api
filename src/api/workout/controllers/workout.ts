@@ -248,6 +248,77 @@ const getClubAthletes = async (strapi, clubId, athleteIds) =>
   });
 
 export default factories.createCoreController(WORKOUT_UID, ({ strapi }) => ({
+  async appMine(ctx) {
+    const authUser = ctx.state.user;
+
+    if (!authUser) {
+      return ctx.unauthorized("Authentication required");
+    }
+
+    const { page, pageSize, start } = getPagination(ctx);
+    const filters = {
+      $and: [
+        {
+          active: {
+            $ne: false,
+          },
+        },
+        {
+          $or: [
+            {
+              group_of_athletes: {
+                users: {
+                  id: {
+                    $eq: authUser.id,
+                  },
+                },
+              },
+            },
+            {
+              user: {
+                id: {
+                  $eq: authUser.id,
+                },
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const [workouts, total] = await Promise.all([
+      strapi.entityService.findMany(WORKOUT_UID, {
+        filters,
+        limit: pageSize,
+        populate: workoutPopulate,
+        sort: [
+          {
+            date: "desc",
+          },
+          {
+            createdAt: "desc",
+          },
+        ],
+        start,
+      } as any),
+      strapi.db.query(WORKOUT_UID).count({
+        where: filters,
+      }),
+    ]);
+
+    return ctx.send({
+      data: (workouts as any[]).map(formatWorkout),
+      meta: {
+        pagination: {
+          page,
+          pageSize,
+          pageCount: Math.ceil(total / pageSize),
+          total,
+        },
+      },
+    });
+  },
+
   async appManage(ctx) {
     const authUser = ctx.state.user;
 
