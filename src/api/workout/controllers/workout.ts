@@ -188,6 +188,52 @@ const getClubWorkoutFilters = (clubId) => ({
   ],
 });
 
+const getAthleteSearchClauses = (searchTerm) => {
+  const search = String(searchTerm || "").trim();
+
+  if (!search) return null;
+
+  const athleteFields = [
+    {
+      name: {
+        $containsi: search,
+      },
+    },
+    {
+      lastname: {
+        $containsi: search,
+      },
+    },
+    {
+      username: {
+        $containsi: search,
+      },
+    },
+    {
+      email: {
+        $containsi: search,
+      },
+    },
+  ];
+
+  return {
+    $or: [
+      {
+        user: {
+          $or: athleteFields,
+        },
+      },
+      {
+        group_of_athletes: {
+          users: {
+            $or: athleteFields,
+          },
+        },
+      },
+    ],
+  };
+};
+
 const getClubAthletes = async (strapi, clubId, athleteIds) =>
   strapi.db.query(USER_UID).findMany({
     where: {
@@ -222,7 +268,12 @@ export default factories.createCoreController(WORKOUT_UID, ({ strapi }) => ({
     }
 
     const { page, pageSize, start } = getPagination(ctx);
-    const filters = getClubWorkoutFilters(clubId);
+    const athleteSearchFilters = getAthleteSearchClauses(ctx.query?.athlete);
+    const filters = athleteSearchFilters
+      ? {
+          $and: [getClubWorkoutFilters(clubId), athleteSearchFilters],
+        }
+      : getClubWorkoutFilters(clubId);
     const [workouts, total] = await Promise.all([
       strapi.entityService.findMany(WORKOUT_UID, {
         filters,
