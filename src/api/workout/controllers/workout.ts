@@ -102,6 +102,7 @@ const formatWorkoutType = (workoutType) => ({
 });
 
 const formatWorkout = (workout) => ({
+  active: workout?.active !== false,
   id: workout?.id,
   documentId: workout?.documentId,
   name: workout?.name,
@@ -368,6 +369,7 @@ export default factories.createCoreController(WORKOUT_UID, ({ strapi }) => ({
     }
 
     const data: any = {
+      active: true,
       name,
       note,
       workout_type: {
@@ -422,6 +424,49 @@ export default factories.createCoreController(WORKOUT_UID, ({ strapi }) => ({
 
     return ctx.send({
       data: formatWorkout(workout),
+    });
+  },
+
+  async appSetActive(ctx) {
+    const authUser = ctx.state.user;
+
+    if (!authUser) {
+      return ctx.unauthorized('Authentication required');
+    }
+
+    const user = await getAuthenticatedUserWithClub(strapi, authUser.id);
+
+    if (!isCoach(user)) {
+      return ctx.forbidden('Only coaches can update workouts');
+    }
+
+    const clubId = user?.club?.id;
+
+    if (!clubId) {
+      return ctx.badRequest('Coach club is required');
+    }
+
+    const workout = await getWorkoutByIdentifier(strapi, ctx.params.workoutId);
+
+    if (!workout || !workoutBelongsToClub(workout, clubId)) {
+      return ctx.notFound('Workout not found');
+    }
+
+    const payload = getPayload(ctx);
+
+    if (typeof payload.active !== 'boolean') {
+      return ctx.badRequest('Active must be true or false');
+    }
+
+    const updatedWorkout = await strapi.entityService.update(WORKOUT_UID, workout.id, {
+      data: {
+        active: payload.active,
+      },
+      populate: workoutPopulate,
+    } as any);
+
+    return ctx.send({
+      data: formatWorkout(updatedWorkout),
     });
   },
 

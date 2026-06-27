@@ -22,6 +22,10 @@
       "type": "text",
       "required": true
     },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
     "user": {
       "type": "relation",
       "relation": "oneToMany",

@@ -28,6 +28,15 @@ export default {
       },
     },
     {
+      method: 'PUT',
+      path: '/app/workouts/:workoutId/status',
+      handler: 'workout.appSetActive',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
       method: 'POST',
       path: '/app/workouts/:workoutId/athletes',
       handler: 'workout.appAssignAthletes',
