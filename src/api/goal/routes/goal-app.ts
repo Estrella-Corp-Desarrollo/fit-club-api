@@ -9,5 +9,14 @@ export default {
         middlewares: [],
       },
     },
+    {
+      method: "PUT",
+      path: "/app/goals/:goalId/validation",
+      handler: "goal.appSetValidation",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

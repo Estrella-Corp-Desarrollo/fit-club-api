@@ -35,6 +35,18 @@
     "goal_status": {
       "type": "string",
       "required": true
+    },
+    "validated": {
+      "type": "boolean",
+      "default": false
+    },
+    "validatedAt": {
+      "type": "datetime"
+    },
+    "validatedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
     }
   }
 }

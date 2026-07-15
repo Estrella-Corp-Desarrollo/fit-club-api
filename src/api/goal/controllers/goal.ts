@@ -60,8 +60,41 @@ const formatGoal = (goal) => ({
   startAt: goal.startAt,
   endAt: goal.endAt,
   goal_status: goal.goal_status,
+  validated: Boolean(goal.validated),
+  validatedAt: goal.validatedAt || null,
+  validatedBy: goal.validatedBy ? formatAthlete(goal.validatedBy) : null,
   user: goal.user ? formatAthlete(goal.user) : null,
 });
+
+const getGoalByIdentifier = async (strapi, identifier) => {
+  const goalIdentifier = String(identifier || "").trim();
+
+  if (!goalIdentifier) return null;
+
+  const numericId = Number(goalIdentifier);
+  const filters = Number.isInteger(numericId)
+    ? {
+        id: numericId,
+      }
+    : {
+        documentId: goalIdentifier,
+      };
+
+  const goals = (await strapi.entityService.findMany(GOAL_UID, {
+    filters,
+    limit: 1,
+    populate: {
+      user: {
+        populate: {
+          club: true,
+        },
+      },
+      validatedBy: true,
+    },
+  } as any)) as any[];
+
+  return goals[0] || null;
+};
 
 const getAthleteFieldSearchClauses = (searchTerm) => [
   {
@@ -194,6 +227,7 @@ export default factories.createCoreController(GOAL_UID, ({ strapi }) => ({
         start,
         populate: {
           user: true,
+          validatedBy: true,
         },
         sort: [
           {
@@ -219,6 +253,61 @@ export default factories.createCoreController(GOAL_UID, ({ strapi }) => ({
           total,
         },
       },
+    });
+  },
+
+  async appSetValidation(ctx) {
+    const authUser = ctx.state.user;
+
+    if (!authUser) {
+      return ctx.unauthorized("Authentication required");
+    }
+
+    const user = await getAuthenticatedUserWithClub(strapi, authUser.id);
+
+    if (!isCoach(user)) {
+      return ctx.forbidden("Only coaches can validate athlete goals");
+    }
+
+    const clubId = user?.club?.id;
+
+    if (!clubId) {
+      return ctx.badRequest("Coach club is required");
+    }
+
+    const goal = await getGoalByIdentifier(strapi, ctx.params.goalId);
+
+    if (!goal || goal.user?.club?.id !== clubId) {
+      return ctx.notFound("Goal not found");
+    }
+
+    const payload = ctx.request.body?.data || ctx.request.body || {};
+    const validated = Boolean(payload.validated);
+
+    const updatedGoal = await strapi.entityService.update(GOAL_UID, goal.id, {
+      data: validated
+        ? {
+            validated: true,
+            validatedAt: new Date().toISOString(),
+            validatedBy: {
+              connect: [authUser.id],
+            },
+          }
+        : {
+            validated: false,
+            validatedAt: null,
+            validatedBy: {
+              set: [],
+            },
+          },
+      populate: {
+        user: true,
+        validatedBy: true,
+      },
+    } as any);
+
+    return ctx.send({
+      data: formatGoal(updatedGoal),
     });
   },
 }));
