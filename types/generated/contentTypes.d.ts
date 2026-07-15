@@ -682,6 +682,46 @@ export interface ApiNewNew extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiNotificationNotification
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'notifications';
+  info: {
+    displayName: 'Notificaciones';
+    pluralName: 'notifications';
+    singularName: 'notification';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    body: Schema.Attribute.Text;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    link: Schema.Attribute.String & Schema.Attribute.DefaultTo<'/'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::notification.notification'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    read: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    type: Schema.Attribute.Enumeration<
+      ['goal_validated', 'workout_assigned', 'general']
+    > &
+      Schema.Attribute.DefaultTo<'general'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiParticipacionParticipacion
   extends Struct.CollectionTypeSchema {
   collectionName: 'participaciones';
@@ -749,6 +789,44 @@ export interface ApiPersonalBestPersonalBest
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiPushSubscriptionPushSubscription
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'push_subscriptions';
+  info: {
+    displayName: 'Suscripciones push';
+    pluralName: 'push-subscriptions';
+    singularName: 'push-subscription';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    auth: Schema.Attribute.String & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    endpoint: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::push-subscription.push-subscription'
+    > &
+      Schema.Attribute.Private;
+    p256dh: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    userAgent: Schema.Attribute.String;
   };
 }
 
@@ -1479,8 +1557,10 @@ declare module '@strapi/strapi' {
       'api::goal.goal': ApiGoalGoal;
       'api::group-of-athlete.group-of-athlete': ApiGroupOfAthleteGroupOfAthlete;
       'api::new.new': ApiNewNew;
+      'api::notification.notification': ApiNotificationNotification;
       'api::participacion.participacion': ApiParticipacionParticipacion;
       'api::personal-best.personal-best': ApiPersonalBestPersonalBest;
+      'api::push-subscription.push-subscription': ApiPushSubscriptionPushSubscription;
       'api::season.season': ApiSeasonSeason;
       'api::test.test': ApiTestTest;
       'api::workout-session.workout-session': ApiWorkoutSessionWorkoutSession;
