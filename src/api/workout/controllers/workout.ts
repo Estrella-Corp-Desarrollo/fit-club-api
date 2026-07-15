@@ -188,51 +188,86 @@ const getClubWorkoutFilters = (clubId) => ({
   ],
 });
 
-const getAthleteSearchClauses = (searchTerm) => {
+const getAthleteFieldSearchClauses = (searchTerm) => [
+  {
+    name: {
+      $containsi: searchTerm,
+    },
+  },
+  {
+    lastname: {
+      $containsi: searchTerm,
+    },
+  },
+  {
+    username: {
+      $containsi: searchTerm,
+    },
+  },
+  {
+    email: {
+      $containsi: searchTerm,
+    },
+  },
+];
+
+const findClubAthleteIdsBySearch = async (strapi, clubId, searchTerm) => {
   const search = String(searchTerm || "").trim();
 
   if (!search) return null;
 
-  const athleteFields = [
-    {
-      name: {
-        $containsi: search,
-      },
-    },
-    {
-      lastname: {
-        $containsi: search,
-      },
-    },
-    {
-      username: {
-        $containsi: search,
-      },
-    },
-    {
-      email: {
-        $containsi: search,
-      },
-    },
+  const tokens = search.split(/\s+/).filter(Boolean);
+  const fieldClauses = [
+    ...getAthleteFieldSearchClauses(search),
+    ...tokens.flatMap((token) => getAthleteFieldSearchClauses(token)),
   ];
 
-  return {
-    $or: [
-      {
-        user: {
-          $or: athleteFields,
+  const athletes = await strapi.db.query(USER_UID).findMany({
+    where: {
+      club: {
+        id: clubId,
+      },
+      $or: fieldClauses,
+    },
+    select: ["id", "name", "lastname", "username", "email"],
+    limit: 200,
+  });
+
+  const matchedAthletes =
+    tokens.length <= 1
+      ? athletes
+      : athletes.filter((athlete) => {
+          const haystack = [athlete.name, athlete.lastname, athlete.username, athlete.email]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+
+          return tokens.every((token) => haystack.includes(token.toLowerCase()));
+        });
+
+  return matchedAthletes.map((athlete) => athlete.id);
+};
+
+const getAthleteIdWorkoutFilters = (athleteIds) => ({
+  $or: [
+    {
+      user: {
+        id: {
+          $in: athleteIds,
         },
       },
-      {
-        group_of_athletes: {
-          users: {
-            $or: athleteFields,
+    },
+    {
+      group_of_athletes: {
+        users: {
+          id: {
+            $in: athleteIds,
           },
         },
       },
-    ],
-  };
-};
+    },
+  ],
+});
 
 const getClubAthletes = async (strapi, clubId, athleteIds) =>
   strapi.db.query(USER_UID).findMany({
@@ -339,10 +374,29 @@ export default factories.createCoreController(WORKOUT_UID, ({ strapi }) => ({
     }
 
     const { page, pageSize, start } = getPagination(ctx);
-    const athleteSearchFilters = getAthleteSearchClauses(ctx.query?.athlete);
-    const filters = athleteSearchFilters
+    const athleteIds = await findClubAthleteIdsBySearch(
+      strapi,
+      clubId,
+      ctx.query?.athlete,
+    );
+
+    if (Array.isArray(athleteIds) && athleteIds.length === 0) {
+      return ctx.send({
+        data: [],
+        meta: {
+          pagination: {
+            page,
+            pageSize,
+            pageCount: 0,
+            total: 0,
+          },
+        },
+      });
+    }
+
+    const filters = athleteIds
       ? {
-          $and: [getClubWorkoutFilters(clubId), athleteSearchFilters],
+          $and: [getClubWorkoutFilters(clubId), getAthleteIdWorkoutFilters(athleteIds)],
         }
       : getClubWorkoutFilters(clubId);
     const [workouts, total] = await Promise.all([
