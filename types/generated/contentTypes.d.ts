@@ -822,6 +822,50 @@ export interface ApiTestTest extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiWorkoutSessionWorkoutSession
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'workout_sessions';
+  info: {
+    displayName: 'Sesiones de rutina';
+    pluralName: 'workout-sessions';
+    singularName: 'workout-session';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    completedAt: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::workout-session.workout-session'
+    > &
+      Schema.Attribute.Private;
+    notes: Schema.Attribute.Text;
+    perceivedEffort: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 10;
+          min: 1;
+        },
+        number
+      >;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    workout: Schema.Attribute.Relation<'manyToOne', 'api::workout.workout'>;
+  };
+}
+
 export interface ApiWorkoutTypeWorkoutType extends Struct.CollectionTypeSchema {
   collectionName: 'workout_types';
   info: {
@@ -865,6 +909,7 @@ export interface ApiWorkoutWorkout extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    active: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1438,6 +1483,7 @@ declare module '@strapi/strapi' {
       'api::personal-best.personal-best': ApiPersonalBestPersonalBest;
       'api::season.season': ApiSeasonSeason;
       'api::test.test': ApiTestTest;
+      'api::workout-session.workout-session': ApiWorkoutSessionWorkoutSession;
       'api::workout-type.workout-type': ApiWorkoutTypeWorkoutType;
       'api::workout.workout': ApiWorkoutWorkout;
       'plugin::content-releases.release': PluginContentReleasesRelease;

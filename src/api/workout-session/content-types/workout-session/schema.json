@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "workout_sessions",
+  "info": {
+    "singularName": "workout-session",
+    "pluralName": "workout-sessions",
+    "displayName": "Sesiones de rutina"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "workout": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::workout.workout"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "completedAt": {
+      "type": "datetime",
+      "required": true
+    },
+    "perceivedEffort": {
+      "type": "integer",
+      "required": true,
+      "min": 1,
+      "max": 10
+    },
+    "notes": {
+      "type": "text"
+    }
+  }
+}
