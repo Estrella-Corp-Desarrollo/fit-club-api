@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "notifications",
+  "info": {
+    "singularName": "notification",
+    "pluralName": "notifications",
+    "displayName": "Notificaciones"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "body": {
+      "type": "text"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": ["goal_validated", "workout_assigned", "general"],
+      "default": "general"
+    },
+    "link": {
+      "type": "string",
+      "default": "/"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

@@ -766,6 +766,9 @@ export default factories.createCoreController(WORKOUT_UID, ({ strapi }) => ({
     const currentAthleteIds = Array.isArray(workout.user)
       ? workout.user.map((athlete) => athlete.id)
       : [];
+    const newlyAssignedIds = athleteIds.filter(
+      (athleteId) => !currentAthleteIds.includes(athleteId),
+    );
     const nextAthleteIds = [...new Set([...currentAthleteIds, ...athleteIds])];
 
     const updatedWorkout = await strapi.entityService.update(
@@ -780,6 +783,25 @@ export default factories.createCoreController(WORKOUT_UID, ({ strapi }) => ({
         populate: workoutPopulate,
       } as any,
     );
+
+    if (newlyAssignedIds.length) {
+      const workoutName = workout.name || "una rutina";
+      const workoutLink = `/workouts/${workout.documentId || workout.id}`;
+
+      strapi
+        .service("api::notification.notification")
+        .notifyUsers(newlyAssignedIds, {
+          title: "Nueva rutina asignada",
+          body: `Te asignaron "${workoutName}". Abre la app para verla.`,
+          type: "workout_assigned",
+          link: workoutLink,
+        })
+        .catch((error) => {
+          strapi.log.warn(
+            `Failed to notify workout assignment: ${error?.message || error}`,
+          );
+        });
+    }
 
     return ctx.send({
       data: formatWorkout(updatedWorkout),
@@ -888,6 +910,9 @@ export default factories.createCoreController(WORKOUT_UID, ({ strapi }) => ({
         },
         id: groupId,
       },
+      populate: {
+        users: true,
+      },
     });
 
     if (!group) {
@@ -906,6 +931,29 @@ export default factories.createCoreController(WORKOUT_UID, ({ strapi }) => ({
         populate: workoutPopulate,
       } as any,
     );
+
+    const groupUserIds = Array.isArray(group.users)
+      ? group.users.map((item) => item.id).filter(Boolean)
+      : [];
+
+    if (groupUserIds.length) {
+      const workoutName = workout.name || "una rutina";
+      const workoutLink = `/workouts/${workout.documentId || workout.id}`;
+
+      strapi
+        .service("api::notification.notification")
+        .notifyUsers(groupUserIds, {
+          title: "Nueva rutina asignada",
+          body: `Tu grupo recibió "${workoutName}". Abre la app para verla.`,
+          type: "workout_assigned",
+          link: workoutLink,
+        })
+        .catch((error) => {
+          strapi.log.warn(
+            `Failed to notify group workout assignment: ${error?.message || error}`,
+          );
+        });
+    }
 
     return ctx.send({
       data: formatWorkout(updatedWorkout),

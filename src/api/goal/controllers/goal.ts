@@ -306,6 +306,28 @@ export default factories.createCoreController(GOAL_UID, ({ strapi }) => ({
       },
     } as any);
 
+    if (validated && goal.user?.id) {
+      const coachName = [user?.name, user?.lastname].filter(Boolean).join(" ");
+      const goalName = goal.name || "tu meta";
+
+      strapi
+        .service("api::notification.notification")
+        .notifyUser({
+          userId: goal.user.id,
+          title: "¡Meta validada!",
+          body: coachName
+            ? `${coachName} validó "${goalName}". ¡Sigue así!`
+            : `Tu coach validó "${goalName}". ¡Sigue así!`,
+          type: "goal_validated",
+          link: "/goals",
+        })
+        .catch((error) => {
+          strapi.log.warn(
+            `Failed to notify goal validation: ${error?.message || error}`,
+          );
+        });
+    }
+
     return ctx.send({
       data: formatGoal(updatedGoal),
     });

@@ -24,6 +24,15 @@ const AUTHENTICATED_USER_ACTIONS = [
   'api::user.user.find',
   'api::user.user.findOne',
 ];
+const AUTHENTICATED_NOTIFICATION_ACTIONS = [
+  'api::notification.notification.appList',
+  'api::notification.notification.appUnreadCount',
+  'api::notification.notification.appMarkRead',
+  'api::notification.notification.appMarkAllRead',
+  'api::notification.notification.appVapidPublicKey',
+  'api::notification.notification.appSubscribePush',
+  'api::notification.notification.appUnsubscribePush',
+];
 
 const ensureRolePermissions = async (strapi: Core.Strapi, roleType: string, actions: string[]) => {
   const role = await strapi.db.query('plugin::users-permissions.role').findOne({
@@ -79,6 +88,7 @@ export default {
       ...AUTHENTICATED_PERSONAL_BEST_ACTIONS,
       ...AUTHENTICATED_RACE_RESULT_ACTIONS,
       ...AUTHENTICATED_USER_ACTIONS,
+      ...AUTHENTICATED_NOTIFICATION_ACTIONS,
     ]);
   },
 };
