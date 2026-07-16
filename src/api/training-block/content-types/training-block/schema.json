@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "training_blocks",
+  "info": {
+    "singularName": "training-block",
+    "pluralName": "training-blocks",
+    "displayName": "Bloque de entrenamiento",
+    "description": "Rango de fechas (inicio/fin) con fase opcional para planificar planned-runs."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "training_blocks"
+    },
+    "startDate": {
+      "type": "date",
+      "required": true
+    },
+    "endDate": {
+      "type": "date",
+      "required": true
+    },
+    "phase": {
+      "type": "enumeration",
+      "enum": ["temporada", "pretemporada", "tapering"]
+    },
+    "notes": {
+      "type": "text"
+    },
+    "planned_runs": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::planned-run.planned-run",
+      "mappedBy": "training_block"
+    }
+  }
+}

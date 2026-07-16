@@ -1,0 +1,4 @@
+{
+  "_comment": "Mapeo asistido sheet → Strapi userId. Keys: email o nombre normalizado.",
+  "i.fonseca@tudi.mx": { "userId": 1 }
+}

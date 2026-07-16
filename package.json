@@ -1,6 +1,6 @@
 {
   "name": "fitclub-api",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "description": "A Strapi application",
   "scripts": {
@@ -11,6 +11,9 @@
     "develop": "strapi develop",
     "start": "strapi start",
     "strapi": "strapi",
+    "smoke:running": "node ./scripts/smoke-running-api.js",
+    "import:sheets-running": "node ./scripts/import-sheets-running.mjs",
+    "import:sheets-running:dry": "node ./scripts/import-sheets-running.mjs --dry-run",
     "upgrade": "npx @strapi/upgrade latest",
     "upgrade:dry": "npx @strapi/upgrade latest --dry"
   },

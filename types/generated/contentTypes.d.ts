@@ -611,7 +611,13 @@ export interface ApiGoalGoal extends Struct.CollectionTypeSchema {
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     user: Schema.Attribute.Relation<
-      'oneToOne',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    validated: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    validatedAt: Schema.Attribute.DateTime;
+    validatedBy: Schema.Attribute.Relation<
+      'manyToOne',
       'plugin::users-permissions.user'
     >;
   };
@@ -792,6 +798,65 @@ export interface ApiPersonalBestPersonalBest
   };
 }
 
+export interface ApiPlannedRunPlannedRun extends Struct.CollectionTypeSchema {
+  collectionName: 'planned_runs';
+  info: {
+    description: 'Sesi\u00F3n de carrera planificada por d\u00EDa. No reutilizar para rutinas de gym (workout).';
+    displayName: 'Entrenamiento planificado';
+    pluralName: 'planned-runs';
+    singularName: 'planned-run';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    distanceKm: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    externalId: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::planned-run.planned-run'
+    > &
+      Schema.Attribute.Private;
+    notes: Schema.Attribute.Text;
+    publishedAt: Schema.Attribute.DateTime;
+    scheduledDate: Schema.Attribute.Date & Schema.Attribute.Required;
+    source: Schema.Attribute.Enumeration<['manual', 'sheets_import']> &
+      Schema.Attribute.DefaultTo<'manual'>;
+    sourceKey: Schema.Attribute.String & Schema.Attribute.Unique;
+    status: Schema.Attribute.Enumeration<['planned', 'done', 'skipped']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'planned'>;
+    targetPace: Schema.Attribute.String;
+    title: Schema.Attribute.String;
+    training_block: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::training-block.training-block'
+    >;
+    type: Schema.Attribute.Enumeration<
+      ['trote', 'pista', 'tirada_larga', 'otro']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'trote'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiPushSubscriptionPushSubscription
   extends Struct.CollectionTypeSchema {
   collectionName: 'push_subscriptions';
@@ -827,6 +892,165 @@ export interface ApiPushSubscriptionPushSubscription
       'plugin::users-permissions.user'
     >;
     userAgent: Schema.Attribute.String;
+  };
+}
+
+export interface ApiRunningActivityRunningActivity
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'running_activities';
+  info: {
+    description: 'Km realizados (manual, import Sheets o Strava). Independiente de workout-session.';
+    displayName: 'Actividad de carrera';
+    pluralName: 'running-activities';
+    singularName: 'running-activity';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    avgCadence: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    avgHr: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    avgWatts: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    completed: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    distanceKm: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    durationSec: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    externalId: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::running-activity.running-activity'
+    > &
+      Schema.Attribute.Private;
+    maxHr: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    maxWatts: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    notes: Schema.Attribute.Text;
+    performedAt: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    planned_run: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::planned-run.planned-run'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    rawPayload: Schema.Attribute.JSON;
+    source: Schema.Attribute.Enumeration<
+      ['manual', 'sheets_import', 'strava']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'manual'>;
+    sourceKey: Schema.Attribute.String & Schema.Attribute.Unique;
+    type: Schema.Attribute.Enumeration<
+      ['trote', 'pista', 'tirada_larga', 'otro']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'trote'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
+export interface ApiRunningProfileRunningProfile
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'running_profiles';
+  info: {
+    description: 'Ficha de carrera del atleta: fase, ritmos de referencia y meta de evento. Independiente de workout/workout-session.';
+    displayName: 'Perfil de carrera';
+    pluralName: 'running-profiles';
+    singularName: 'running-profile';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    easyPace: Schema.Attribute.String;
+    event: Schema.Attribute.String;
+    eventDate: Schema.Attribute.Date;
+    goal: Schema.Attribute.Text;
+    group: Schema.Attribute.String;
+    intervalPace: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::running-profile.running-profile'
+    > &
+      Schema.Attribute.Private;
+    notes: Schema.Attribute.Text;
+    phase: Schema.Attribute.Enumeration<
+      ['temporada', 'pretemporada', 'tapering']
+    > &
+      Schema.Attribute.DefaultTo<'temporada'>;
+    publishedAt: Schema.Attribute.DateTime;
+    seriesPace: Schema.Attribute.String;
+    thresholdPace: Schema.Attribute.String;
+    trackDays: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 7;
+          min: 0;
+        },
+        number
+      >;
+    trackMode: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
   };
 }
 
@@ -869,6 +1093,53 @@ export interface ApiSeasonSeason extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiStravaConnectionStravaConnection
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'strava_connections';
+  info: {
+    description: 'Tokens OAuth Strava por usuario. Sync incremental desde connectedAt (sin backfill en v1).';
+    displayName: 'Conexi\u00F3n Strava';
+    pluralName: 'strava-connections';
+    singularName: 'strava-connection';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    accessToken: Schema.Attribute.Text &
+      Schema.Attribute.Required &
+      Schema.Attribute.Private;
+    active: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    connectedAt: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    expiresAt: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    lastSyncedAt: Schema.Attribute.DateTime;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::strava-connection.strava-connection'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    refreshToken: Schema.Attribute.Text &
+      Schema.Attribute.Required &
+      Schema.Attribute.Private;
+    scopes: Schema.Attribute.String;
+    stravaAthleteId: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiTestTest extends Struct.CollectionTypeSchema {
   collectionName: 'tests';
   info: {
@@ -897,6 +1168,49 @@ export interface ApiTestTest extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiTrainingBlockTrainingBlock
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'training_blocks';
+  info: {
+    description: 'Rango de fechas (inicio/fin) con fase opcional para planificar planned-runs.';
+    displayName: 'Bloque de entrenamiento';
+    pluralName: 'training-blocks';
+    singularName: 'training-block';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    endDate: Schema.Attribute.Date & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::training-block.training-block'
+    > &
+      Schema.Attribute.Private;
+    notes: Schema.Attribute.Text;
+    phase: Schema.Attribute.Enumeration<
+      ['temporada', 'pretemporada', 'tapering']
+    >;
+    planned_runs: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::planned-run.planned-run'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    startDate: Schema.Attribute.Date & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
   };
 }
 
@@ -1517,12 +1831,32 @@ export interface PluginUsersPermissionsUser
       'oneToMany',
       'api::personal-best.personal-best'
     >;
+    planned_runs: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::planned-run.planned-run'
+    >;
     provider: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     resetPasswordToken: Schema.Attribute.String & Schema.Attribute.Private;
     role: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.role'
+    >;
+    running_activities: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::running-activity.running-activity'
+    >;
+    running_profile: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::running-profile.running-profile'
+    >;
+    strava_connection: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::strava-connection.strava-connection'
+    >;
+    training_blocks: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::training-block.training-block'
     >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -1560,9 +1894,14 @@ declare module '@strapi/strapi' {
       'api::notification.notification': ApiNotificationNotification;
       'api::participacion.participacion': ApiParticipacionParticipacion;
       'api::personal-best.personal-best': ApiPersonalBestPersonalBest;
+      'api::planned-run.planned-run': ApiPlannedRunPlannedRun;
       'api::push-subscription.push-subscription': ApiPushSubscriptionPushSubscription;
+      'api::running-activity.running-activity': ApiRunningActivityRunningActivity;
+      'api::running-profile.running-profile': ApiRunningProfileRunningProfile;
       'api::season.season': ApiSeasonSeason;
+      'api::strava-connection.strava-connection': ApiStravaConnectionStravaConnection;
       'api::test.test': ApiTestTest;
+      'api::training-block.training-block': ApiTrainingBlockTrainingBlock;
       'api::workout-session.workout-session': ApiWorkoutSessionWorkoutSession;
       'api::workout-type.workout-type': ApiWorkoutTypeWorkoutType;
       'api::workout.workout': ApiWorkoutWorkout;

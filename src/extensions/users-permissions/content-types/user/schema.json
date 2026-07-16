@@ -112,6 +112,36 @@
       "relation": "oneToMany",
       "target": "api::participacion.participacion",
       "mappedBy": "athlete"
+    },
+    "running_profile": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::running-profile.running-profile",
+      "mappedBy": "user"
+    },
+    "planned_runs": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::planned-run.planned-run",
+      "mappedBy": "user"
+    },
+    "training_blocks": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::training-block.training-block",
+      "mappedBy": "user"
+    },
+    "running_activities": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::running-activity.running-activity",
+      "mappedBy": "user"
+    },
+    "strava_connection": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::strava-connection.strava-connection",
+      "mappedBy": "user"
     }
   }
 }

@@ -1,0 +1,54 @@
+{
+  "kind": "collectionType",
+  "collectionName": "strava_connections",
+  "info": {
+    "singularName": "strava-connection",
+    "pluralName": "strava-connections",
+    "displayName": "Conexión Strava",
+    "description": "Tokens OAuth Strava por usuario. Sync incremental desde connectedAt (sin backfill en v1)."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "strava_connection"
+    },
+    "stravaAthleteId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "accessToken": {
+      "type": "text",
+      "private": true,
+      "required": true
+    },
+    "refreshToken": {
+      "type": "text",
+      "private": true,
+      "required": true
+    },
+    "expiresAt": {
+      "type": "datetime",
+      "required": true
+    },
+    "connectedAt": {
+      "type": "datetime",
+      "required": true
+    },
+    "lastSyncedAt": {
+      "type": "datetime"
+    },
+    "scopes": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

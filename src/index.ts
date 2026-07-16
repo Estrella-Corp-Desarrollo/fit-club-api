@@ -33,6 +33,27 @@ const AUTHENTICATED_NOTIFICATION_ACTIONS = [
   'api::notification.notification.appSubscribePush',
   'api::notification.notification.appUnsubscribePush',
 ];
+const AUTHENTICATED_RUNNING_ACTIONS = [
+  'api::running-profile.running-profile.appGetMine',
+  'api::running-profile.running-profile.appGetByUser',
+  'api::running-profile.running-profile.appUpsertByUser',
+  'api::planned-run.planned-run.appList',
+  'api::planned-run.planned-run.appCreate',
+  'api::planned-run.planned-run.appBulkCreate',
+  'api::planned-run.planned-run.appUpdate',
+  'api::planned-run.planned-run.appDelete',
+  'api::planned-run.planned-run.appUpsertImport',
+  'api::training-block.training-block.appList',
+  'api::training-block.training-block.appCreate',
+  'api::training-block.training-block.appUpdate',
+  'api::training-block.training-block.appDelete',
+  'api::running-activity.running-activity.appList',
+  'api::running-activity.running-activity.appCreate',
+  'api::running-activity.running-activity.appUpdate',
+  'api::running-activity.running-activity.appDelete',
+  'api::running-activity.running-activity.appUpsertImport',
+  'api::strava-connection.strava-connection.appStatus',
+];
 
 const ensureRolePermissions = async (strapi: Core.Strapi, roleType: string, actions: string[]) => {
   const role = await strapi.db.query('plugin::users-permissions.role').findOne({
@@ -89,6 +110,10 @@ export default {
       ...AUTHENTICATED_RACE_RESULT_ACTIONS,
       ...AUTHENTICATED_USER_ACTIONS,
       ...AUTHENTICATED_NOTIFICATION_ACTIONS,
+      ...AUTHENTICATED_RUNNING_ACTIONS,
     ]);
+    // FitClub usa roles custom athlete/coach (no heredan de authenticated)
+    await ensureRolePermissions(strapi, 'athlete', AUTHENTICATED_RUNNING_ACTIONS);
+    await ensureRolePermissions(strapi, 'coach', AUTHENTICATED_RUNNING_ACTIONS);
   },
 };

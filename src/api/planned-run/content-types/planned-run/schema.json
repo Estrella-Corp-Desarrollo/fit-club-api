@@ -1,0 +1,68 @@
+{
+  "kind": "collectionType",
+  "collectionName": "planned_runs",
+  "info": {
+    "singularName": "planned-run",
+    "pluralName": "planned-runs",
+    "displayName": "Entrenamiento planificado",
+    "description": "Sesión de carrera planificada por día. No reutilizar para rutinas de gym (workout)."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "planned_runs"
+    },
+    "training_block": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::training-block.training-block",
+      "inversedBy": "planned_runs"
+    },
+    "scheduledDate": {
+      "type": "date",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": ["trote", "pista", "tirada_larga", "otro"],
+      "default": "trote",
+      "required": true
+    },
+    "distanceKm": {
+      "type": "decimal",
+      "min": 0
+    },
+    "title": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "text"
+    },
+    "targetPace": {
+      "type": "string"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["planned", "done", "skipped"],
+      "default": "planned",
+      "required": true
+    },
+    "source": {
+      "type": "enumeration",
+      "enum": ["manual", "sheets_import"],
+      "default": "manual"
+    },
+    "externalId": {
+      "type": "string"
+    },
+    "sourceKey": {
+      "type": "string",
+      "unique": true
+    }
+  }
+}

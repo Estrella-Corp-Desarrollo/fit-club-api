@@ -1,0 +1,88 @@
+{
+  "kind": "collectionType",
+  "collectionName": "running_activities",
+  "info": {
+    "singularName": "running-activity",
+    "pluralName": "running-activities",
+    "displayName": "Actividad de carrera",
+    "description": "Km realizados (manual, import Sheets o Strava). Independiente de workout-session."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "running_activities"
+    },
+    "planned_run": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::planned-run.planned-run"
+    },
+    "performedAt": {
+      "type": "datetime",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": ["trote", "pista", "tirada_larga", "otro"],
+      "default": "trote",
+      "required": true
+    },
+    "completed": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "distanceKm": {
+      "type": "decimal",
+      "min": 0
+    },
+    "durationSec": {
+      "type": "integer",
+      "min": 0
+    },
+    "notes": {
+      "type": "text"
+    },
+    "source": {
+      "type": "enumeration",
+      "enum": ["manual", "sheets_import", "strava"],
+      "default": "manual",
+      "required": true
+    },
+    "externalId": {
+      "type": "string"
+    },
+    "sourceKey": {
+      "type": "string",
+      "unique": true
+    },
+    "avgHr": {
+      "type": "integer",
+      "min": 0
+    },
+    "maxHr": {
+      "type": "integer",
+      "min": 0
+    },
+    "avgCadence": {
+      "type": "integer",
+      "min": 0
+    },
+    "avgWatts": {
+      "type": "integer",
+      "min": 0
+    },
+    "maxWatts": {
+      "type": "integer",
+      "min": 0
+    },
+    "rawPayload": {
+      "type": "json"
+    }
+  }
+}

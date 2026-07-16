@@ -130,3 +130,10 @@ dist
 build
 .strapi-updater.json
 .strapi-cloud.json
+
+############################
+# Sheets import local artifacts
+############################
+
+scripts/import-report.json
+scripts/athlete-map.json
