@@ -272,6 +272,34 @@ const main = async () => {
         : 1;
     }
 
+    {
+      const athleteRes = await request(
+        "GET",
+        "/app/running-ranking",
+        athleteToken,
+      );
+      const coachRes = await request("GET", "/app/running-ranking", coachToken);
+      const shapeOk =
+        athleteRes.status === 200 &&
+        Array.isArray(athleteRes.json?.data?.athletes) &&
+        Array.isArray(athleteRes.json?.data?.weekly) &&
+        athleteRes.json?.data?.currentWeek?.week;
+      failed += assert(
+        "GET /app/running-ranking (athlete)",
+        shapeOk,
+        `status=${athleteRes.status} athletes=${athleteRes.json?.data?.athletes?.length}`,
+      )
+        ? 0
+        : 1;
+      failed += assert(
+        "GET /app/running-ranking (coach)",
+        coachRes.status === 200 && Array.isArray(coachRes.json?.data?.athletes),
+        `status=${coachRes.status}`,
+      )
+        ? 0
+        : 1;
+    }
+
     if (activityId) {
       await request(
         "DELETE",

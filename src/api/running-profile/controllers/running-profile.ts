@@ -15,9 +15,19 @@ import {
   formatAthlete,
   connectUser,
   findUserByIdentifier,
+  USER_UID,
 } from "../../../utils/running-app";
+import {
+  aggregatePlanRows,
+  aggregateRawRows,
+  buildRanking,
+  normalizeName as rankingNormalizeName,
+  profileToAthleteInfo,
+} from "../../../utils/running-ranking";
 
 const UID = "api::running-profile.running-profile";
+const PLANNED_RUN_UID = "api::planned-run.planned-run";
+const ACTIVITY_UID = "api::running-activity.running-activity";
 
 const profilePopulate: any = {
   user: {
@@ -135,6 +145,71 @@ const upsertProfile = async (strapi, user, fields) => {
 };
 
 export default factories.createCoreController(UID, ({ strapi }) => ({
+  /**
+   * Club-scoped team ranking (planned-runs + activities + profiles).
+   * Shape compatible with FitClubWeb getTeamRanking().
+   */
+  async appRanking(ctx) {
+    const authUser = ctx.state.user;
+    if (!authUser) return ctx.unauthorized("Authentication required");
+
+    const actor = await getAuthenticatedUserWithClub(strapi, authUser.id);
+    if (!actor) return ctx.unauthorized("Authentication required");
+
+    const clubId = actor.club?.id;
+    if (!clubId) {
+      return ctx.badRequest("Club is required to view running ranking");
+    }
+
+    const members = await strapi.db.query(USER_UID).findMany({
+      where: { club: { id: clubId } },
+      populate: { running_profile: true, role: true },
+    });
+
+    const roster = members.filter((member) => {
+      const role = String(
+        member.role?.type || member.role?.name || "",
+      ).toLowerCase();
+      // Coaches only appear if they have a running profile (athletes always)
+      if (role === "coach" && !member.running_profile) return false;
+      return true;
+    });
+
+    const memberIds = roster.map((member) => member.id);
+    const nameByUserId = new Map<number, string>();
+    const athletes: Record<string, ReturnType<typeof profileToAthleteInfo>> = {};
+
+    for (const member of roster) {
+      const info = profileToAthleteInfo(member, member.running_profile);
+      nameByUserId.set(member.id, info.name);
+      athletes[rankingNormalizeName(info.name)] = info;
+    }
+
+    if (!memberIds.length) {
+      return ctx.send({
+        data: buildRanking({ athletes: {}, planRows: [], rawRows: [] }),
+      });
+    }
+
+    const [plannedRuns, activities] = await Promise.all([
+      strapi.db.query(PLANNED_RUN_UID).findMany({
+        where: { user: { id: { $in: memberIds } } },
+        populate: { user: true },
+      }),
+      strapi.db.query(ACTIVITY_UID).findMany({
+        where: { user: { id: { $in: memberIds } } },
+        populate: { user: true },
+      }),
+    ]);
+
+    const planRows = aggregatePlanRows(plannedRuns, nameByUserId);
+    const rawRows = aggregateRawRows(activities, nameByUserId);
+
+    return ctx.send({
+      data: buildRanking({ athletes, planRows, rawRows }),
+    });
+  },
+
   async appGetMine(ctx) {
     const authUser = ctx.state.user;
     if (!authUser) return ctx.unauthorized("Authentication required");

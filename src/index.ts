@@ -34,6 +34,7 @@ const AUTHENTICATED_NOTIFICATION_ACTIONS = [
   'api::notification.notification.appUnsubscribePush',
 ];
 const AUTHENTICATED_RUNNING_ACTIONS = [
+  'api::running-profile.running-profile.appRanking',
   'api::running-profile.running-profile.appGetMine',
   'api::running-profile.running-profile.appGetByUser',
   'api::running-profile.running-profile.appUpsertByUser',

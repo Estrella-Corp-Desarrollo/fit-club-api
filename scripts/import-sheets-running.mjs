@@ -153,7 +153,13 @@ const sundayOfIsoWeek = (week, year) => {
 
 const loadAthleteMap = () => {
   if (!fs.existsSync(mapPath)) return {};
-  return JSON.parse(fs.readFileSync(mapPath, "utf8"));
+  const raw = JSON.parse(fs.readFileSync(mapPath, "utf8"));
+  const map = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (key.startsWith("_") || !value?.userId) continue;
+    map[normalizeName(key)] = { userId: value.userId };
+  }
+  return map;
 };
 
 const api = async (method, apiPath, body) => {
@@ -195,8 +201,9 @@ const resolveUserId = (athleteMap, usersByEmail, usersByName, athlete, email) =>
   const emailKey = normalizeName(email || "");
   const nameKey = normalizeName(athlete || "");
 
-  if (emailKey && athleteMap[emailKey]?.userId) return athleteMap[emailKey].userId;
+  // Name map first so shared emails (e.g. Erika vs Chuy) can diverge.
   if (nameKey && athleteMap[nameKey]?.userId) return athleteMap[nameKey].userId;
+  if (emailKey && athleteMap[emailKey]?.userId) return athleteMap[emailKey].userId;
   if (emailKey && usersByEmail[emailKey]) return usersByEmail[emailKey];
   if (nameKey && usersByName[nameKey]) return usersByName[nameKey];
   return null;
@@ -250,6 +257,7 @@ const loadStrapiUsers = async () => {
 
 const importProfiles = async (rows, athleteMap, users) => {
   const unmatched = [];
+  const errors = [];
   let upserted = 0;
 
   const headerIndex = rows.findIndex((row) =>
@@ -289,16 +297,23 @@ const importProfiles = async (rows, athleteMap, users) => {
 
     console.log(`[profile] ${name} → user ${userId}${dryRun ? " (dry-run)" : ""}`);
     if (!dryRun) {
-      await api("PUT", `/app/running-profiles/${userId}`, body);
+      try {
+        await api("PUT", `/app/running-profiles/${userId}`, body);
+      } catch (error) {
+        console.warn(`[profile] skip ${name} (user ${userId}): ${error.message}`);
+        errors.push({ sheetName: name, email, userId, reason: error.message });
+        continue;
+      }
     }
     upserted += 1;
   }
 
-  return { upserted, unmatched };
+  return { upserted, unmatched, errors };
 };
 
 const importActivities = async (rows, athleteMap, users) => {
   const unmatched = [];
+  const errors = [];
   let upserted = 0;
 
   for (const row of rows.slice(1)) {
@@ -344,15 +359,22 @@ const importActivities = async (rows, athleteMap, users) => {
     };
 
     console.log(`[activity] ${athlete} ${sessionDate} ${km}km`);
-    await api("POST", "/app/running-activities/import", body);
+    try {
+      await api("POST", "/app/running-activities/import", body);
+    } catch (error) {
+      console.warn(`[activity] skip ${athlete}: ${error.message}`);
+      errors.push({ sheetName: athlete, userId, reason: error.message });
+      continue;
+    }
     upserted += 1;
   }
 
-  return { upserted, unmatched };
+  return { upserted, unmatched, errors };
 };
 
 const importPlan = async (rows, athleteMap, users) => {
   const unmatched = [];
+  const errors = [];
   let upserted = 0;
 
   for (const row of rows) {
@@ -396,12 +418,18 @@ const importPlan = async (rows, athleteMap, users) => {
       };
 
       console.log(`[plan] ${athlete} S${week}/${year} ${part.type} ${part.km}`);
-      await api("POST", "/app/planned-runs/import", body);
+      try {
+        await api("POST", "/app/planned-runs/import", body);
+      } catch (error) {
+        console.warn(`[plan] skip ${athlete}: ${error.message}`);
+        errors.push({ sheetName: athlete, userId, reason: error.message });
+        continue;
+      }
       upserted += 1;
     }
   }
 
-  return { upserted, unmatched };
+  return { upserted, unmatched, errors };
 };
 
 const main = async () => {
