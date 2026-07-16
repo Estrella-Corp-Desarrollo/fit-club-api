@@ -263,10 +263,18 @@ const main = async () => {
 
     {
       const res = await request("GET", "/app/strava/status", athleteToken);
+      const oauthReady = Boolean(res.json?.meta?.oauthReady);
+      // Without STRAVA_CLIENT_ID/SECRET, oauthReady must be false (app still works).
+      const envReady = Boolean(
+        process.env.STRAVA_CLIENT_ID && process.env.STRAVA_CLIENT_SECRET,
+      );
       failed += assert(
         "GET /app/strava/status",
-        res.status === 200 && res.json?.meta?.oauthReady === false,
-        `status=${res.status}`,
+        res.status === 200 &&
+          typeof res.json?.meta?.oauthReady === "boolean" &&
+          oauthReady === envReady &&
+          Object.prototype.hasOwnProperty.call(res.json?.meta || {}, "connected"),
+        `status=${res.status} oauthReady=${oauthReady} envReady=${envReady}`,
       )
         ? 0
         : 1;

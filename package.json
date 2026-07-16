@@ -1,6 +1,6 @@
 {
   "name": "fitclub-api",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "description": "A Strapi application",
   "scripts": {
@@ -12,6 +12,8 @@
     "start": "strapi start",
     "strapi": "strapi",
     "smoke:running": "node ./scripts/smoke-running-api.js",
+    "test:strava-mapper": "node ./scripts/test-strava-mapper.js",
+    "strava:webhook": "node ./scripts/strava-register-webhook.mjs",
     "import:sheets-running": "node ./scripts/import-sheets-running.mjs",
     "import:sheets-running:dry": "node ./scripts/import-sheets-running.mjs --dry-run",
     "upgrade": "npx @strapi/upgrade latest",

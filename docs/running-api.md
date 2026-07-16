@@ -6,5 +6,6 @@ Documentación espejo del contrato web. Fuente canónica para el front: `FitClub
 - Endpoints `/app/...` en los respectivos `*-app.ts`
 - Ranking de club: `GET /app/running-ranking` (agregado planned + activities + profiles; semana domingo–sábado)
 - Import Sheets: [sheets-import-plan.md](./sheets-import-plan.md) + `scripts/import-sheets-running.mjs`
+- Strava OAuth + webhook: [strava.md](./strava.md)
 
 `workout` / `workout-session` no se usan para km de carrera.

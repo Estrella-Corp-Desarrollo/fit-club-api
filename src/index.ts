@@ -33,6 +33,11 @@ const AUTHENTICATED_NOTIFICATION_ACTIONS = [
   'api::notification.notification.appSubscribePush',
   'api::notification.notification.appUnsubscribePush',
 ];
+const PUBLIC_STRAVA_ACTIONS = [
+  'api::strava-connection.strava-connection.appCallback',
+  'api::strava-connection.strava-connection.appWebhook',
+];
+
 const AUTHENTICATED_RUNNING_ACTIONS = [
   'api::running-profile.running-profile.appRanking',
   'api::running-profile.running-profile.appGetMine',
@@ -54,6 +59,8 @@ const AUTHENTICATED_RUNNING_ACTIONS = [
   'api::running-activity.running-activity.appDelete',
   'api::running-activity.running-activity.appUpsertImport',
   'api::strava-connection.strava-connection.appStatus',
+  'api::strava-connection.strava-connection.appConnect',
+  'api::strava-connection.strava-connection.appDisconnect',
 ];
 
 const ensureRolePermissions = async (strapi: Core.Strapi, roleType: string, actions: string[]) => {
@@ -104,7 +111,10 @@ export default {
    * run jobs, or perform some special logic.
    */
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
-    await ensureRolePermissions(strapi, 'public', PUBLIC_PASSWORD_RECOVERY_ACTIONS);
+    await ensureRolePermissions(strapi, 'public', [
+      ...PUBLIC_PASSWORD_RECOVERY_ACTIONS,
+      ...PUBLIC_STRAVA_ACTIONS,
+    ]);
     await ensureRolePermissions(strapi, 'authenticated', [
       ...AUTHENTICATED_PASSWORD_ACTIONS,
       ...AUTHENTICATED_PERSONAL_BEST_ACTIONS,
