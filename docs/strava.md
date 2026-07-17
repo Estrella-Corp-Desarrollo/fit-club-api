@@ -19,10 +19,14 @@ https://<API_HOST>/api/app/strava/callback
 Tras el OAuth, la API redirige al navegador a:
 
 ```text
-{FITCLUB_WEB_URL}/running/profile?strava=connected
+{FITCLUB_WEB_URL}/?strava=connected
 ```
 
-(o `?strava=error&message=...`).
+(o `/?strava=error&message=...`). FitClubWeb hace navigate en cliente a
+`/running/profile` (así funciona aunque el host no tenga fallback SPA).
+
+**Hosting SPA:** nginx debe usar `try_files $uri $uri/ /index.html;`. En
+Apache, el build incluye `public/.htaccess` con rewrite a `index.html`.
 
 ## 2. Variables de entorno (fitclub-api)
 

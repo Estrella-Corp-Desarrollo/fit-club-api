@@ -108,10 +108,12 @@ const buildAuthorizeUrl = (userId: number) => {
 };
 
 const buildSuccessRedirect = (status: "connected" | "error", message?: string) => {
+  // Land on `/` so hosts without SPA fallback (no try_files / .htaccess) still
+  // serve index.html. FitClubWeb then client-navigates to /running/profile.
   const base = getFitclubWebUrl().replace(/\/$/, "");
   const params = new URLSearchParams({ strava: status });
   if (message) params.set("message", message);
-  return `${base}/running/profile?${params.toString()}`;
+  return `${base}/?${params.toString()}`;
 };
 
 type TokenResponse = {

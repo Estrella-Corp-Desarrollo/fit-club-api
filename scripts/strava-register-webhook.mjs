@@ -9,7 +9,9 @@
  * Requires STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, STRAVA_VERIFY_TOKEN,
  * STRAVA_WEBHOOK_CALLBACK_URL in env / .env
  */
-require("dotenv").config();
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const CLIENT_ID = (process.env.STRAVA_CLIENT_ID || "").trim();
 const CLIENT_SECRET = (process.env.STRAVA_CLIENT_SECRET || "").trim();
