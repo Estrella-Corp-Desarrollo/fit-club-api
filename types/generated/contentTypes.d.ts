@@ -715,7 +715,7 @@ export interface ApiNotificationNotification
     read: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     type: Schema.Attribute.Enumeration<
-      ['goal_validated', 'workout_assigned', 'general']
+      ['goal_validated', 'workout_assigned', 'strava_activity', 'general']
     > &
       Schema.Attribute.DefaultTo<'general'>;
     updatedAt: Schema.Attribute.DateTime;

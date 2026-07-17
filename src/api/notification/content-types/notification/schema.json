@@ -24,7 +24,7 @@
     },
     "type": {
       "type": "enumeration",
-      "enum": ["goal_validated", "workout_assigned", "general"],
+      "enum": ["goal_validated", "workout_assigned", "strava_activity", "general"],
       "default": "general"
     },
     "link": {

@@ -27,6 +27,7 @@ type StrapiLike = {
     update: (uid: string, id: number | string, params: any) => Promise<any>;
     delete: (uid: string, id: number | string) => Promise<any>;
   };
+  service: (uid: string) => any;
   log: {
     info: (...args: any[]) => void;
     warn: (...args: any[]) => void;
@@ -143,17 +144,42 @@ const upsertRunningFromStrava = async (
     user: connectUser(user),
   };
 
-  const saved = existing[0]
-    ? await strapi.entityService.update(ACTIVITY_UID, existing[0].id, { data } as any)
-    : await strapi.entityService.create(ACTIVITY_UID, { data } as any);
+  const isCreate = !existing[0];
+  const saved = isCreate
+    ? await strapi.entityService.create(ACTIVITY_UID, { data } as any)
+    : await strapi.entityService.update(ACTIVITY_UID, existing[0].id, { data } as any);
 
   await strapi.entityService.update(CONNECTION_UID, connection.id, {
     data: { lastSyncedAt: new Date().toISOString() },
   } as any);
 
+  if (isCreate) {
+    const kmLabel =
+      mapped.distanceKm != null && !Number.isNaN(Number(mapped.distanceKm))
+        ? `${Number(mapped.distanceKm)} km`
+        : "";
+    const activityName = mapped.notes || "Carrera";
+    const body = [activityName, kmLabel].filter(Boolean).join(" · ");
+
+    strapi
+      .service("api::notification.notification")
+      .notifyUser({
+        userId: user.id,
+        title: "Nuevo entrenamiento de Strava",
+        body,
+        type: "strava_activity",
+        link: "/running/activities",
+      })
+      .catch((error) => {
+        strapi.log.warn(
+          `[strava] Failed to notify activity sync: ${error?.message || error}`,
+        );
+      });
+  }
+
   return {
     skipped: false,
-    upserted: existing[0] ? "updated" : "created",
+    upserted: isCreate ? "created" : "updated",
     activityId: saved.id,
     sourceKey: mapped.sourceKey,
   };

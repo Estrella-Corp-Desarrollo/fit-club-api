@@ -73,10 +73,12 @@ Strava solo permite **una** suscripción por app.
    - `externalId=<activityId>`
    - `sourceKey=strava:<activityId>`
    - métricas HR/cadence/watts si existen; `rawPayload` (subset)
+   - si es **alta nueva** (`created`): notificación in-app + push (`type=strava_activity`, link `/running/activities`)
 2. `activity.delete` → borra la activity con ese `sourceKey`.
 3. Actividades anteriores a `connectedAt` se ignoran.
 4. Ride/etc. se ignoran.
 5. Errores de sync se loguean; el webhook responde **200** para no reintentar en bucle agresivo.
+6. Updates de la misma actividad Strava **no** reenvían notificación (evita spam).
 
 Refresh de `accessToken` automático cuando está cerca de expirar.
 
