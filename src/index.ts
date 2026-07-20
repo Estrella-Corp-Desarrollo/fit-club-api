@@ -1,4 +1,5 @@
 import type { Core } from '@strapi/strapi';
+import { migrateActiveClubIntoClubs } from './utils/coach-clubs';
 
 const PUBLIC_PASSWORD_RECOVERY_ACTIONS = [
   'plugin::users-permissions.auth.forgotPassword',
@@ -23,6 +24,8 @@ const AUTHENTICATED_RACE_RESULT_ACTIONS = [
 const AUTHENTICATED_USER_ACTIONS = [
   'api::user.user.find',
   'api::user.user.findOne',
+  'api::user.user.appSetActiveClub',
+  'api::user.user.appAddClub',
 ];
 const AUTHENTICATED_NOTIFICATION_ACTIONS = [
   'api::notification.notification.appList',
@@ -61,6 +64,11 @@ const AUTHENTICATED_RUNNING_ACTIONS = [
   'api::strava-connection.strava-connection.appStatus',
   'api::strava-connection.strava-connection.appConnect',
   'api::strava-connection.strava-connection.appDisconnect',
+];
+
+const COACH_CLUB_ACTIONS = [
+  'api::user.user.appSetActiveClub',
+  'api::user.user.appAddClub',
 ];
 
 const ensureRolePermissions = async (strapi: Core.Strapi, roleType: string, actions: string[]) => {
@@ -125,6 +133,15 @@ export default {
     ]);
     // FitClub usa roles custom athlete/coach (no heredan de authenticated)
     await ensureRolePermissions(strapi, 'athlete', AUTHENTICATED_RUNNING_ACTIONS);
-    await ensureRolePermissions(strapi, 'coach', AUTHENTICATED_RUNNING_ACTIONS);
+    await ensureRolePermissions(strapi, 'coach', [
+      ...AUTHENTICATED_RUNNING_ACTIONS,
+      ...COACH_CLUB_ACTIONS,
+    ]);
+
+    try {
+      await migrateActiveClubIntoClubs(strapi);
+    } catch (error) {
+      strapi.log.warn(`Club membership migration skipped: ${error?.message || error}`);
+    }
   },
 };

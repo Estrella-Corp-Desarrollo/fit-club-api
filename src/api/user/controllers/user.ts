@@ -1,5 +1,11 @@
 'use strict';
 
+const {
+  addClubMembershipForUser,
+  formatUserClubs,
+  setActiveClubForUser,
+} = require('../../../utils/coach-clubs');
+
 const USER_UID = 'plugin::users-permissions.user';
 
 const formatPersonalRecord = (record) => ({
@@ -128,18 +134,43 @@ module.exports = {
           'users-permissions'
         ].services.user.add(userData);
 
+        if (club) {
+          const clubId =
+            typeof club === 'object' ? club.id || club.connect?.[0]?.id : club;
+          if (clubId) {
+            try {
+              await strapi.db.query(USER_UID).update({
+                where: { id: user.id },
+                data: {
+                  clubs: {
+                    connect: [{ id: Number(clubId) }],
+                  },
+                },
+              });
+            } catch (syncError) {
+              console.error('Failed to sync clubs membership on register', syncError);
+            }
+          }
+        }
+
+        const refreshed = await strapi.db.query(USER_UID).findOne({
+          where: { id: user.id },
+          populate: { club: true, clubs: true, role: true },
+        });
+
         const sanitizedUser = {
-          id: user.id,
-          email: user.email,
-          club: user.club,
-          birthdate: user.birthdate,
-          avatar: user.avatar,
-          weight: user.weight,
-          height: user.height,
-          lastname: user.lastname,
-          name: user.name,
-          role: user.role,
-          username:user.username
+          id: refreshed.id,
+          email: refreshed.email,
+          club: refreshed.club,
+          clubs: refreshed.clubs,
+          birthdate: refreshed.birthdate,
+          avatar: refreshed.avatar,
+          weight: refreshed.weight,
+          height: refreshed.height,
+          lastname: refreshed.lastname,
+          name: refreshed.name,
+          role: refreshed.role,
+          username: refreshed.username
         };
 
         return ctx.send(sanitizedUser);
@@ -326,17 +357,44 @@ module.exports = {
       const updatedUser = await strapi
         .plugins['users-permissions']
         .services.user.edit( id , updatedUserData);
+
+      // Keep manyToMany membership in sync when active club is assigned.
+      if (club) {
+        const clubId =
+          typeof club === 'object' ? club.id || club.connect?.[0]?.id : club;
+        if (clubId) {
+          try {
+            await strapi.db.query(USER_UID).update({
+              where: { id },
+              data: {
+                clubs: {
+                  connect: [{ id: Number(clubId) }],
+                },
+              },
+            });
+          } catch (syncError) {
+            console.error('Failed to sync clubs membership', syncError);
+          }
+        }
+      }
+
+      const refreshedUser = await strapi.db.query(USER_UID).findOne({
+        where: { id },
+        populate: { club: true, clubs: true, role: true, avatar: true },
+      });
+
       const sanitizedUser = {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        club: updatedUser.club,
-        birthdate: updatedUser.birthdate,
-        avatar: updatedUser.avatar,
-        weight: updatedUser.weight,
-        height: updatedUser.height,
-        lastname: updatedUser.lastname,
-        name: updatedUser.name,
-        role: updatedUser.role,
+        id: refreshedUser.id,
+        email: refreshedUser.email,
+        club: refreshedUser.club,
+        clubs: refreshedUser.clubs,
+        birthdate: refreshedUser.birthdate,
+        avatar: refreshedUser.avatar,
+        weight: refreshedUser.weight,
+        height: refreshedUser.height,
+        lastname: refreshedUser.lastname,
+        name: refreshedUser.name,
+        role: refreshedUser.role,
       };
   
       return ctx.send(sanitizedUser);
@@ -366,6 +424,58 @@ module.exports = {
       console.error(error);
       return ctx.internalServerError('Error deleting user');
     }
-  }
+  },
+
+  async appSetActiveClub(ctx) {
+    const authUser = ctx.state.user;
+    if (!authUser) return ctx.unauthorized('Authentication required');
+
+    const payload = ctx.request.body?.data || ctx.request.body || {};
+    const result = await setActiveClubForUser(strapi, authUser.id, payload.clubId);
+
+    if (result.error === 'unauthorized') return ctx.unauthorized(result.message);
+    if (result.error === 'forbidden') return ctx.forbidden(result.message);
+    if (result.error === 'notFound') return ctx.notFound(result.message);
+    if (result.error) return ctx.badRequest(result.message);
+
+    return ctx.send({
+      data: {
+        ...formatUserClubs(result.user),
+        id: result.user.id,
+        email: result.user.email,
+        name: result.user.name,
+        lastname: result.user.lastname,
+        role: result.user.role,
+        avatar: result.user.avatar,
+      },
+    });
+  },
+
+  async appAddClub(ctx) {
+    const authUser = ctx.state.user;
+    if (!authUser) return ctx.unauthorized('Authentication required');
+
+    const payload = ctx.request.body?.data || ctx.request.body || {};
+    const result = await addClubMembershipForUser(strapi, authUser.id, payload.clubId, {
+      setActive: Boolean(payload.setActive),
+    });
+
+    if (result.error === 'unauthorized') return ctx.unauthorized(result.message);
+    if (result.error === 'forbidden') return ctx.forbidden(result.message);
+    if (result.error === 'notFound') return ctx.notFound(result.message);
+    if (result.error) return ctx.badRequest(result.message);
+
+    return ctx.send({
+      data: {
+        ...formatUserClubs(result.user),
+        id: result.user.id,
+        email: result.user.email,
+        name: result.user.name,
+        lastname: result.user.lastname,
+        role: result.user.role,
+        avatar: result.user.avatar,
+      },
+    });
+  },
   
 };

@@ -13,12 +13,25 @@ const getPayload = (ctx) => ctx.request.body?.data || ctx.request.body || {};
 const getAuthenticatedUserWithClub = async (strapi, userId) =>
   strapi.db.query(USER_UID).findOne({
     where: { id: userId },
-    populate: { club: true, role: true },
+    populate: { club: true, clubs: true, role: true },
   });
 
 const isCoach = (user) =>
   String(user?.role?.name || user?.role?.type || "").toLowerCase() ===
   COACH_ROLE;
+
+const getCoachClubIds = (user) => {
+  const fromMembership = Array.isArray(user?.clubs)
+    ? user.clubs.map((club) => club?.id).filter(Boolean)
+    : [];
+
+  if (fromMembership.length) {
+    return [...new Set(fromMembership)];
+  }
+
+  const activeId = user?.club?.id;
+  return activeId ? [activeId] : [];
+};
 
 const toPositiveInteger = (value) => {
   const numberValue = Number(value);
@@ -84,7 +97,7 @@ const findUserByIdentifier = async (strapi, identifier) => {
 
   return strapi.db.query(USER_UID).findOne({
     where,
-    populate: { club: true, role: true },
+    populate: { club: true, clubs: true, role: true },
   });
 };
 
@@ -105,9 +118,17 @@ const assertClubAthleteAccess = async (strapi, authUser, targetUserId) => {
     return { error: "forbidden", message: "Only coaches can access other athletes" };
   }
 
-  const clubId = actor?.club?.id;
-  if (!clubId) {
+  const activeClubId = actor?.club?.id;
+  if (!activeClubId) {
     return { error: "badRequest", message: "Coach club is required" };
+  }
+
+  const membershipIds = getCoachClubIds(actor);
+  if (!membershipIds.includes(activeClubId)) {
+    return {
+      error: "badRequest",
+      message: "Active club is not in coach membership",
+    };
   }
 
   const target = await findUserByIdentifier(strapi, targetUserId);
@@ -115,8 +136,9 @@ const assertClubAthleteAccess = async (strapi, authUser, targetUserId) => {
     return { error: "notFound", message: "Athlete not found" };
   }
 
-  if (target.club?.id !== clubId) {
-    return { error: "forbidden", message: "Athlete is not in your club" };
+  // Selector UX: coach only operates within the active club.
+  if (target.club?.id !== activeClubId) {
+    return { error: "forbidden", message: "Athlete is not in your active club" };
   }
 
   return { actor, target, isSelf: false };
@@ -204,6 +226,7 @@ export {
   getPayload,
   getAuthenticatedUserWithClub,
   isCoach,
+  getCoachClubIds,
   toPositiveInteger,
   getPagination,
   formatAthlete,

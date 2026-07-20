@@ -101,6 +101,12 @@
       "relation": "oneToOne",
       "target": "api::club.club"
     },
+    "clubs": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::club.club",
+      "inversedBy": "users"
+    },
     "personal_record": {
       "type": "relation",
       "relation": "oneToMany",

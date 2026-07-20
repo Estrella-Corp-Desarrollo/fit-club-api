@@ -2,7 +2,7 @@ module.exports = {
   routes: [
     {
       method: 'POST',
-      path: '/auth/local/register', 
+      path: '/auth/local/register',
       handler: 'user.register',
       config: {
         policies: [],
@@ -30,7 +30,7 @@ module.exports = {
     {
       method: 'PATCH',
       path: '/users/:id',
-      handler: 'user.update',  // Asegúrate de que apunte al método correcto
+      handler: 'user.update',
       config: {
         policies: [],
         middlewares: [],
@@ -40,6 +40,24 @@ module.exports = {
       method: 'DELETE',
       path: '/users/:id',
       handler: 'user.delete',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'PUT',
+      path: '/app/me/active-club',
+      handler: 'user.appSetActiveClub',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'POST',
+      path: '/app/me/clubs',
+      handler: 'user.appAddClub',
       config: {
         policies: [],
         middlewares: [],

@@ -277,7 +277,10 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       target = access.target;
     }
 
-    const parsed = parseActivityFields(ctx, payload, { requireCore: true });
+    const parsed = parseActivityFields(ctx, payload, {
+      requireCore: true,
+      allowMetrics: true,
+    });
     if (parsed.error) return parsed.error;
 
     const planned = await resolvePlannedRun(strapi, payload, target.id);
@@ -323,7 +326,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     }
 
     const payload = getPayload(ctx);
-    const parsed = parseActivityFields(ctx, payload);
+    const parsed = parseActivityFields(ctx, payload, { allowMetrics: true });
     if (parsed.error) return parsed.error;
     if (!Object.keys(parsed.data).length) {
       return ctx.badRequest("No valid fields to update");
