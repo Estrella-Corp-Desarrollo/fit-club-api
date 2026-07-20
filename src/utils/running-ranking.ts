@@ -867,7 +867,6 @@ export const aggregateRawRows = (
     performedAt?: string;
     type?: string;
     distanceKm?: number | string;
-    completed?: boolean;
     user?: { id?: number };
     userId?: number;
   }>,
@@ -876,7 +875,6 @@ export const aggregateRawRows = (
   const rows: RawRow[] = [];
 
   for (const activity of activities) {
-    if (activity.completed === false) continue;
     const userId = activity.user?.id || activity.userId;
     if (!userId || !activity.performedAt) continue;
     const athlete = nameByUserId.get(userId);
