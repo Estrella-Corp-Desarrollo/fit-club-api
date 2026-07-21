@@ -24,6 +24,7 @@ const AUTHENTICATED_RACE_RESULT_ACTIONS = [
 const AUTHENTICATED_USER_ACTIONS = [
   'api::user.user.find',
   'api::user.user.findOne',
+  'api::user.user.appGetClubs',
   'api::user.user.appSetActiveClub',
   'api::user.user.appAddClub',
 ];
@@ -67,6 +68,7 @@ const AUTHENTICATED_RUNNING_ACTIONS = [
 ];
 
 const COACH_CLUB_ACTIONS = [
+  'api::user.user.appGetClubs',
   'api::user.user.appSetActiveClub',
   'api::user.user.appAddClub',
 ];

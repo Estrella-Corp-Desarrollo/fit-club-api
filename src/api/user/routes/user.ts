@@ -46,6 +46,15 @@ module.exports = {
       },
     },
     {
+      method: 'GET',
+      path: '/app/me/clubs',
+      handler: 'user.appGetClubs',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
       method: 'PUT',
       path: '/app/me/active-club',
       handler: 'user.appSetActiveClub',

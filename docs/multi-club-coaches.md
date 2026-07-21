@@ -7,4 +7,4 @@
 - Endpoints:
   - `PUT /app/me/active-club` `{ "clubId": 2 }` — cambia club activo (debe estar en membresía).
   - `POST /app/me/clubs` `{ "clubId": 2, "setActive": false }` — agrega club a la membresía.
-- Web: selector “Club activo” en el header cuando hay 2+ clubs; en `/club` se puede agregar otro club por ID.
+- Web: selector “Club activo” en el header cuando hay 2+ clubs. La membresía multi-club se asigna en Strapi (`user.clubs`).

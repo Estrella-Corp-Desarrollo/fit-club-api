@@ -2,6 +2,7 @@
 
 const {
   addClubMembershipForUser,
+  ensureActiveClubInMembership,
   formatUserClubs,
   setActiveClubForUser,
 } = require('../../../utils/coach-clubs');
@@ -424,6 +425,25 @@ module.exports = {
       console.error(error);
       return ctx.internalServerError('Error deleting user');
     }
+  },
+
+  async appGetClubs(ctx) {
+    const authUser = ctx.state.user;
+    if (!authUser) return ctx.unauthorized('Authentication required');
+
+    const user = await ensureActiveClubInMembership(strapi, authUser.id);
+    if (!user) return ctx.unauthorized('Authentication required');
+
+    return ctx.send({
+      data: {
+        ...formatUserClubs(user),
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        lastname: user.lastname,
+        role: user.role,
+      },
+    });
   },
 
   async appSetActiveClub(ctx) {
